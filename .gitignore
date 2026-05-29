@@ -29,3 +29,7 @@ pnpm-debug.log*
 .vscode/
 .idea/
 *.tsbuildinfo
+
+# playwright + screenshots
+.playwright-mcp/
+*.png
