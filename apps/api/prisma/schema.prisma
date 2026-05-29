@@ -1,0 +1,137 @@
+// ERP Portal — Prisma schema (MVP)
+// Source of truth: docs/01-product-spec.md (§4 stages, §5 entities, §6 permissions)
+// Domain: eco-bag factory — clients, orders, 9-stage production tracking, RBAC.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─────────────────────────────────────────────────────────────
+// Enums
+// ─────────────────────────────────────────────────────────────
+
+/// RBAC roles (spec §2).
+enum Role {
+  ADMIN
+  SUPERVISOR
+  PARTNER
+}
+
+/// Order priority (spec §5).
+enum Priority {
+  HIGH
+  MEDIUM
+  LOW
+}
+
+/// Order lifecycle status (spec §5).
+enum OrderStatus {
+  ACTIVE
+  DELAYED
+  DELIVERED
+}
+
+/// The nine ordered production stages (spec §4). `currentStage` points at one.
+enum ProductionStage {
+  PAPER_PROCUREMENT
+  PRINTING
+  LAMINATION
+  PUNCHING
+  IN_HOUSE_MANUFACTURING
+  HANDLE_PASTING
+  PACKING
+  DISPATCH
+  DELIVERED
+}
+
+// ─────────────────────────────────────────────────────────────
+// Models
+// ─────────────────────────────────────────────────────────────
+
+/// System user. Auth + RBAC. Admin enters data; Supervisor verifies; Partner monitors.
+model User {
+  id           String        @id @default(uuid()) @db.Uuid
+  name         String
+  email        String        @unique
+  passwordHash String
+  role         Role          @default(PARTNER)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  // Daily updates this user recorded (Admin) — see DailyUpdate.updatedBy.
+  dailyUpdates DailyUpdate[]
+
+  @@index([role])
+}
+
+/// A client the factory produces orders for.
+model Client {
+  id        String   @id @default(uuid()) @db.Uuid
+  name      String
+  contact   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  orders    Order[]
+}
+
+/// A production order. Travels through the 9 stages to DELIVERED.
+model Order {
+  id           String          @id @default(uuid()) @db.Uuid
+  orderCode    String          @unique // e.g. ORD-001
+  name         String
+  quantity     Int
+  deadline     DateTime
+  priority     Priority        @default(MEDIUM)
+  status       OrderStatus     @default(ACTIVE)
+  currentStage ProductionStage @default(PAPER_PROCUREMENT)
+
+  // Specifications (spec §5) — structured columns for MVP.
+  size         String?
+  gsm          Int?
+  printingType String?
+  handleType   String?
+  lamination   Boolean         @default(false)
+
+  // Relations
+  clientId     String          @db.Uuid
+  client       Client          @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  dailyUpdates DailyUpdate[]
+
+  // Timestamps
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+  deliveredAt  DateTime?
+
+  @@index([clientId])
+  @@index([status])
+  @@index([deadline])
+}
+
+/// One daily production update for an order (spec §3, §5).
+/// Records progress within a stage; `verified` set by Supervisor (spec §6).
+model DailyUpdate {
+  id                String          @id @default(uuid()) @db.Uuid
+  date              DateTime        @default(now())
+  stage             ProductionStage
+  quantityCompleted Int             @default(0)
+  quantityPending   Int             @default(0)
+  remarks           String?
+  verified          Boolean         @default(false)
+
+  // Relations
+  orderId           String          @db.Uuid
+  order             Order           @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  updatedById       String          @db.Uuid
+  updatedBy         User            @relation(fields: [updatedById], references: [id])
+
+  createdAt         DateTime        @default(now())
+
+  @@index([orderId])
+  @@index([date])
+}

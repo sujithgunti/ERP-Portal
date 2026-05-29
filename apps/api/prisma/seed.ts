@@ -1,16 +1,18 @@
 import { PrismaClient, Role, Priority, ProductionStage } from '@prisma/client';
-import bcrypt from 'bcryptjs';
+import * as bcrypt from 'bcryptjs';
 
 const prisma = new PrismaClient();
 
 async function main() {
-  const passwordHash = await bcrypt.hash('admin123', 10);
-
-  // Seed one user per role (password: <role>123 — see developer guide).
   const admin = await prisma.user.upsert({
     where: { email: 'admin@erp.local' },
     update: {},
-    create: { name: 'Admin', email: 'admin@erp.local', passwordHash, role: Role.ADMIN },
+    create: {
+      name: 'Admin',
+      email: 'admin@erp.local',
+      passwordHash: await bcrypt.hash('admin123', 10),
+      role: Role.ADMIN,
+    },
   });
 
   await prisma.user.upsert({
@@ -35,11 +37,14 @@ async function main() {
     },
   });
 
-  // Sample client + order to populate the dashboard.
   const client = await prisma.client.upsert({
-    where: { id: 'seed-client-taaza' },
+    where: { id: '00000000-0000-0000-0000-000000000001' },
     update: {},
-    create: { id: 'seed-client-taaza', name: 'Taaza', contact: 'taaza@example.com' },
+    create: {
+      id: '00000000-0000-0000-0000-000000000001',
+      name: 'Taaza',
+      contact: 'taaza@example.com',
+    },
   });
 
   const order = await prisma.order.upsert({
