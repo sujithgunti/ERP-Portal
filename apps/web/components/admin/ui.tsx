@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import type { OrderStatus, Priority, ProductionStage } from '@erp/types';
+import { PRODUCTION_STAGE_ORDER } from '@erp/types';
 
 export function stageLabel(stage: ProductionStage): string {
   return stage
@@ -7,6 +8,25 @@ export function stageLabel(stage: ProductionStage): string {
     .split('_')
     .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
     .join(' ');
+}
+
+/** Completion % from the order's current stage (DELIVERED = 100%). 9 stages. */
+export function stageProgress(stage: ProductionStage): number {
+  const idx = PRODUCTION_STAGE_ORDER.indexOf(stage);
+  const last = PRODUCTION_STAGE_ORDER.length - 1; // 8
+  if (idx < 0) return 0;
+  return Math.round((idx / last) * 100);
+}
+
+export function ProgressBar({ value }: { value: number }) {
+  return (
+    <div className="h-2 w-full overflow-hidden rounded-full bg-paper-deep">
+      <div
+        className="h-full rounded-full bg-pine-moss transition-all"
+        style={{ width: `${value}%` }}
+      />
+    </div>
+  );
 }
 
 export function StatCard({
@@ -24,7 +44,7 @@ export function StatCard({
         accent ? 'border-kraft/40' : 'border-ink-faint/15'
       }`}
     >
-      <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-ink-faint">
+      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-ink-faint">
         {label}
       </p>
       <p
@@ -84,7 +104,7 @@ export function SectionHeader({
     <div className="mb-6 flex items-end justify-between gap-4">
       <div>
         {eyebrow ? (
-          <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-kraft-dark">
+          <p className="text-xs font-semibold uppercase tracking-[0.22em] text-kraft-dark">
             {eyebrow}
           </p>
         ) : null}

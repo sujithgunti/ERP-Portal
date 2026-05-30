@@ -11,6 +11,7 @@ export function Field({
   placeholder,
   autoComplete,
   required = true,
+  defaultValue,
   rightSlot,
 }: {
   id: string;
@@ -19,12 +20,13 @@ export function Field({
   placeholder?: string;
   autoComplete?: string;
   required?: boolean;
+  defaultValue?: string | number;
   rightSlot?: React.ReactNode;
 }) {
   return (
     <div className="space-y-1.5">
       <div className="flex items-center justify-between">
-        <label htmlFor={id} className="block text-[13px] font-semibold text-ink">
+        <label htmlFor={id} className="block text-sm font-semibold text-ink">
           {label}
         </label>
         {rightSlot}
@@ -35,6 +37,7 @@ export function Field({
         type={type}
         autoComplete={autoComplete}
         required={required}
+        defaultValue={defaultValue}
         placeholder={placeholder}
         className="field"
       />
@@ -57,7 +60,7 @@ export function PasswordField({
   return (
     <div className="space-y-1.5">
       <div className="flex items-center justify-between">
-        <label htmlFor={id} className="block text-[13px] font-semibold text-ink">
+        <label htmlFor={id} className="block text-sm font-semibold text-ink">
           {label}
         </label>
         {rightSlot}
@@ -88,20 +91,29 @@ export function PasswordField({
 export function ErrorNote({ message }: { message?: string }) {
   if (!message) return null;
   return (
-    <p className="flex items-center gap-2 rounded-lg border border-red-200 bg-red-50/80 px-3.5 py-2.5 text-[13px] font-medium text-red-700">
+    <p className="flex items-center gap-2 rounded-lg border border-red-200 bg-red-50/80 px-3.5 py-2.5 text-sm font-medium text-red-700">
       <span className="text-base leading-none">⚠</span>
       {message}
     </p>
   );
 }
 
-export function SubmitButton({ idleLabel, busyLabel }: { idleLabel: string; busyLabel: string }) {
-  const { pending } = useFormStatus();
+export function SubmitButton({
+  idleLabel,
+  busyLabel,
+  pending: pendingOverride,
+}: {
+  idleLabel: string;
+  busyLabel: string;
+  pending?: boolean;
+}) {
+  const status = useFormStatus();
+  const pending = pendingOverride ?? status.pending;
   return (
     <button
       type="submit"
       disabled={pending}
-      className="group relative flex w-full items-center justify-center gap-2 overflow-hidden rounded-lg bg-pine px-4 py-3.5 text-[15px] font-semibold text-paper shadow-card transition-all duration-200 hover:bg-pine-deep disabled:cursor-not-allowed disabled:opacity-70"
+      className="group relative flex w-full items-center justify-center gap-2 overflow-hidden rounded-lg bg-pine px-4 py-3.5 text-base font-semibold text-paper shadow-card transition-all duration-200 hover:bg-pine-deep disabled:cursor-not-allowed disabled:opacity-70"
     >
       <span
         className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/10 to-transparent transition-transform duration-700 group-hover:translate-x-full"

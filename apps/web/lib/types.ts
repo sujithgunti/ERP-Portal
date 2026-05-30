@@ -19,3 +19,25 @@ export interface OrderRow {
   client: { id: string; name: string };
   createdAt: string;
 }
+
+export interface DailyUpdateRow {
+  id: string;
+  date: string;
+  stage: ProductionStage;
+  quantityCompleted: number;
+  quantityPending: number;
+  remarks: string | null;
+  verified: boolean;
+  updatedBy: { id: string; name: string };
+}
+
+export interface OrderDetail extends OrderRow {
+  size: string | null;
+  gsm: number | null;
+  printingType: string | null;
+  handleType: string | null;
+  lamination: boolean;
+  deliveredAt: string | null;
+  client: { id: string; name: string; contact: string | null };
+  dailyUpdates: DailyUpdateRow[];
+}

@@ -29,7 +29,7 @@ export function BrandPanel() {
           end&nbsp;to&nbsp;end.
         </h1>
         <p
-          className="mt-5 animate-fade-up text-[15px] leading-relaxed text-paper/70"
+          className="mt-5 animate-fade-up text-base leading-relaxed text-paper/70"
           style={{ animationDelay: '300ms' }}
         >
           The single system of record for the floor — clients, deadlines, and every stage of the
@@ -39,7 +39,7 @@ export function BrandPanel() {
         <ul className="mt-9 animate-fade-up space-y-2.5" style={{ animationDelay: '420ms' }}>
           {STAGES.map((stage, i) => (
             <li key={stage} className="flex items-center gap-3 text-sm text-paper/80">
-              <span className="flex h-6 w-6 items-center justify-center rounded-full border border-kraft/40 text-[11px] font-semibold text-kraft">
+              <span className="flex h-6 w-6 items-center justify-center rounded-full border border-kraft/40 text-xs font-semibold text-kraft">
                 {i + 1}
               </span>
               <span className="font-medium tracking-tight">{stage}</span>

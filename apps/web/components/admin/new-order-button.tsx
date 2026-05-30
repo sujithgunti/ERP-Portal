@@ -3,9 +3,11 @@
 import { useState } from 'react';
 import { Modal } from '@/components/ui/modal';
 import { OrderForm } from '@/components/admin/order-form';
+import { useToast } from '@/lib/store/ui-store';
 import type { ClientRow } from '@/lib/types';
 
-export function NewOrderButton({ clients }: { clients: ClientRow[] }) {
+export function NewOrderButton({ clients, onCreated }: { clients: ClientRow[]; onCreated: () => void }) {
+  const toast = useToast();
   const [open, setOpen] = useState(false);
 
   return (
@@ -25,7 +27,15 @@ export function NewOrderButton({ clients }: { clients: ClientRow[] }) {
         title="New order"
         subtitle="Create a production order and start tracking its 9 stages."
       >
-        <OrderForm clients={clients} onCancel={() => setOpen(false)} />
+        <OrderForm
+          clients={clients}
+          onCancel={() => setOpen(false)}
+          onSuccess={() => {
+            setOpen(false);
+            toast('Order created', 'success');
+            onCreated();
+          }}
+        />
       </Modal>
     </>
   );

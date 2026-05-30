@@ -1,11 +1,12 @@
+'use client';
+
 import Link from 'next/link';
+import { useState } from 'react';
 import type { OrderStatus } from '@erp/types';
-import { apiFetch } from '@/lib/api-client';
+import { useApi } from '@/lib/use-api';
 import type { OrderRow, ClientRow } from '@/lib/types';
 import { Card, SectionHeader, StatusBadge, PriorityTag, EmptyState, stageLabel } from '@/components/admin/ui';
 import { NewOrderButton } from '@/components/admin/new-order-button';
-
-export const dynamic = 'force-dynamic';
 
 const FILTERS: { label: string; value?: OrderStatus }[] = [
   { label: 'All' },
@@ -14,51 +15,45 @@ const FILTERS: { label: string; value?: OrderStatus }[] = [
   { label: 'Delivered', value: 'DELIVERED' },
 ];
 
-export default async function OrdersPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ status?: string }>;
-}) {
-  const { status } = await searchParams;
-  const query = status ? `?status=${status}` : '';
-  const [orders, clients] = await Promise.all([
-    apiFetch<OrderRow[]>(`/orders${query}`),
-    apiFetch<ClientRow[]>('/clients'),
-  ]);
+export default function OrdersPage() {
+  const [status, setStatus] = useState<OrderStatus | undefined>();
+  const path = status ? `/orders?status=${status}` : '/orders';
+  const { data: orders, loading, refetch } = useApi<OrderRow[]>('GET', path);
+  const { data: clients } = useApi<ClientRow[]>('GET', '/clients');
 
   return (
     <>
       <SectionHeader
         eyebrow="Order Management"
         title="Orders"
-        actionSlot={<NewOrderButton clients={clients} />}
+        actionSlot={<NewOrderButton clients={clients ?? []} onCreated={refetch} />}
       />
 
       <div className="mb-5 flex gap-2">
         {FILTERS.map((f) => {
-          const active = (f.value ?? '') === (status ?? '');
+          const active = (f.value ?? undefined) === status;
           return (
-            <Link
+            <button
               key={f.label}
-              href={f.value ? `/admin/orders?status=${f.value}` : '/admin/orders'}
+              onClick={() => setStatus(f.value)}
               className={`rounded-full px-3.5 py-1.5 text-sm font-medium transition-colors ${
-                active
-                  ? 'bg-pine text-paper'
-                  : 'border border-ink-faint/25 text-ink-soft hover:bg-paper-deep'
+                active ? 'bg-pine text-paper' : 'border border-ink-faint/25 text-ink-soft hover:bg-paper-deep'
               }`}
             >
               {f.label}
-            </Link>
+            </button>
           );
         })}
       </div>
 
-      {orders.length === 0 ? (
+      {loading ? (
+        <p className="py-16 text-center text-sm text-ink-faint">Loading orders…</p>
+      ) : !orders || orders.length === 0 ? (
         <EmptyState title="No orders here" hint="Create your first order to start tracking production." />
       ) : (
         <Card className="overflow-hidden">
           <table className="w-full text-left text-sm">
-            <thead className="bg-paper-deep/40 text-[11px] uppercase tracking-wide text-ink-faint">
+            <thead className="bg-paper-deep/40 text-xs uppercase tracking-wide text-ink-faint">
               <tr>
                 <th className="px-6 py-3 font-semibold">Order</th>
                 <th className="px-3 py-3 font-semibold">Client</th>
@@ -73,27 +68,19 @@ export default async function OrdersPage({
               {orders.map((o) => (
                 <tr key={o.id} className="border-t border-ink-faint/10 hover:bg-paper-deep/20">
                   <td className="px-6 py-3.5">
-                    <p className="font-medium text-ink">{o.name}</p>
-                    <p className="text-xs text-ink-faint">{o.orderCode}</p>
+                    <Link href={`/admin/orders/${o.id}`} className="group">
+                      <p className="font-medium text-ink group-hover:text-pine-moss">{o.name}</p>
+                      <p className="text-xs text-ink-faint">{o.orderCode}</p>
+                    </Link>
                   </td>
                   <td className="px-3 py-3.5 text-ink-soft">{o.client.name}</td>
-                  <td className="px-3 py-3.5 tabular-nums text-ink-soft">
-                    {o.quantity.toLocaleString()}
-                  </td>
+                  <td className="px-3 py-3.5 tabular-nums text-ink-soft">{o.quantity.toLocaleString()}</td>
                   <td className="px-3 py-3.5 text-ink-soft">
-                    {new Date(o.deadline).toLocaleDateString(undefined, {
-                      day: 'numeric',
-                      month: 'short',
-                      year: 'numeric',
-                    })}
+                    {new Date(o.deadline).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' })}
                   </td>
                   <td className="px-3 py-3.5 text-ink-soft">{stageLabel(o.currentStage)}</td>
-                  <td className="px-3 py-3.5">
-                    <PriorityTag priority={o.priority} />
-                  </td>
-                  <td className="px-6 py-3.5">
-                    <StatusBadge status={o.status} />
-                  </td>
+                  <td className="px-3 py-3.5"><PriorityTag priority={o.priority} /></td>
+                  <td className="px-6 py-3.5"><StatusBadge status={o.status} /></td>
                 </tr>
               ))}
             </tbody>

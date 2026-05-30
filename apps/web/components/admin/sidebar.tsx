@@ -40,7 +40,7 @@ export function Sidebar() {
         })}
       </nav>
 
-      <div className="mt-auto px-2 text-[11px] leading-relaxed text-paper/30">
+      <div className="mt-auto px-2 text-xs leading-relaxed text-paper/30">
         <p className="font-display italic text-paper/40">Production Control</p>
         <p className="mt-1">Eco-bag manufacturing ERP</p>
       </div>

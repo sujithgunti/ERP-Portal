@@ -10,6 +10,8 @@
 html {
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
+  /* Global type scale — bump the rem base so the whole UI reads a touch larger. */
+  font-size: 17px;
 }
 
 body {
@@ -55,7 +57,7 @@ body {
 
 /* Input affordance */
 .field {
-  @apply w-full rounded-lg border border-ink-faint/30 bg-paper-card px-4 py-3 text-[15px] text-ink
+  @apply w-full rounded-lg border border-ink-faint/30 bg-paper-card px-4 py-3 text-base text-ink
     outline-none transition-all duration-200 placeholder:text-ink-faint/70;
 }
 .field:focus {
