@@ -10,6 +10,7 @@ export function Field({
   type = 'text',
   placeholder,
   autoComplete,
+  required = true,
   rightSlot,
 }: {
   id: string;
@@ -17,6 +18,7 @@ export function Field({
   type?: string;
   placeholder?: string;
   autoComplete?: string;
+  required?: boolean;
   rightSlot?: React.ReactNode;
 }) {
   return (
@@ -32,7 +34,7 @@ export function Field({
         name={id}
         type={type}
         autoComplete={autoComplete}
-        required
+        required={required}
         placeholder={placeholder}
         className="field"
       />
