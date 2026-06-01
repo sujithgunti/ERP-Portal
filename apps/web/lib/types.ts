@@ -1,5 +1,25 @@
 import type { OrderStatus, Priority, ProductionStage } from '@erp/types';
 
+// Re-export costing contracts from the shared package for web-side imports.
+export type {
+  ExpenseCategory,
+  ExpenseItemRow,
+  ExpensePeriodRow,
+  CreateExpensePeriodDto,
+  CreateExpenseItemDto,
+  MaterialLineDto,
+  MaterialLineRow,
+  SetOrderCostDto,
+  OrderCostBreakdown,
+  AttendanceStatus,
+  WorkerRow,
+  CreateWorkerDto,
+  UpdateWorkerDto,
+  AttendanceRosterRow,
+  MarkAttendanceDto,
+  AttendanceSummaryRow,
+} from '@erp/types';
+
 export interface ClientRow {
   id: string;
   name: string;

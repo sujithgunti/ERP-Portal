@@ -2,6 +2,25 @@ import Link from 'next/link';
 import type { OrderStatus, Priority, ProductionStage } from '@erp/types';
 import { PRODUCTION_STAGE_ORDER } from '@erp/types';
 
+/** Format a number as Indian Rupees. `decimals` controls fraction digits (default 2). */
+export function inr(value: number, decimals = 2): string {
+  return new Intl.NumberFormat('en-IN', {
+    style: 'currency',
+    currency: 'INR',
+    minimumFractionDigits: decimals,
+    maximumFractionDigits: decimals,
+  }).format(Number.isFinite(value) ? value : 0);
+}
+
+/** Human label for an expense category enum value (e.g. MACHINE_MAINTENANCE → "Machine Maintenance"). */
+export function titleCase(value: string): string {
+  return value
+    .toLowerCase()
+    .split('_')
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+    .join(' ');
+}
+
 export function stageLabel(stage: ProductionStage): string {
   return stage
     .toLowerCase()

@@ -49,6 +49,28 @@ enum ProductionStage {
   DELIVERED
 }
 
+/// Categories of monthly factory overhead (the expense ledger). Summed and
+/// divided by bags produced that month to get overhead-per-bag.
+enum ExpenseCategory {
+  ELECTRICITY
+  LABOUR
+  RENT
+  COOLANT
+  GUM
+  TRANSPORT
+  MACHINE_MAINTENANCE
+  BOILER
+  WATER
+  OTHER
+}
+
+/// A worker's status for a single day.
+enum AttendanceStatus {
+  PRESENT
+  ABSENT
+  HALF_DAY
+}
+
 // ─────────────────────────────────────────────────────────────
 // Models
 // ─────────────────────────────────────────────────────────────
@@ -102,6 +124,7 @@ model Order {
   clientId     String          @db.Uuid
   client       Client          @relation(fields: [clientId], references: [id], onDelete: Cascade)
   dailyUpdates DailyUpdate[]
+  cost         OrderCost?
 
   // Timestamps
   createdAt    DateTime        @default(now())
@@ -133,5 +156,106 @@ model DailyUpdate {
   createdAt         DateTime        @default(now())
 
   @@index([orderId])
+  @@index([date])
+}
+
+// ─────────────────────────────────────────────────────────────
+// Costing — monthly expense ledger + per-order cost breakdown
+// ─────────────────────────────────────────────────────────────
+
+/// A calendar month of factory overheads. overhead-per-bag = Σ items.amount /
+/// totalBagsProduced. `totalBagsProduced` is entered by the admin.
+model ExpensePeriod {
+  id                String        @id @default(uuid()) @db.Uuid
+  month             Int // 1-12
+  year              Int
+  totalBagsProduced Int           @default(0)
+  note              String?
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+
+  items             ExpenseItem[]
+  orderCosts        OrderCost[]
+
+  @@unique([year, month])
+}
+
+/// One line in a month's expense ledger (e.g. Rent 65000).
+model ExpenseItem {
+  id        String          @id @default(uuid()) @db.Uuid
+  periodId  String          @db.Uuid
+  period    ExpensePeriod   @relation(fields: [periodId], references: [id], onDelete: Cascade)
+  category  ExpenseCategory
+  amount    Decimal         @db.Decimal(12, 2)
+  note      String?
+  createdAt DateTime        @default(now())
+
+  @@index([periodId])
+}
+
+/// Per-order cost configuration. Material lines are entered manually; overhead
+/// is pulled from the chosen ExpensePeriod. cost-per-bag computed live, not stored.
+model OrderCost {
+  id                 String         @id @default(uuid()) @db.Uuid
+  orderId            String         @unique @db.Uuid
+  order              Order          @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  // Which month's overhead-per-bag to apply (optional).
+  overheadPeriodId   String?        @db.Uuid
+  overheadPeriod     ExpensePeriod? @relation(fields: [overheadPeriodId], references: [id], onDelete: SetNull)
+
+  sellingPricePerBag Decimal?       @db.Decimal(10, 4)
+  note               String?
+  createdAt          DateTime       @default(now())
+  updatedAt          DateTime       @updatedAt
+
+  materialLines      MaterialLine[]
+
+  @@index([overheadPeriodId])
+}
+
+/// One material cost line for an order (e.g. Paper 5.06 / bag). Sum = material-per-bag.
+model MaterialLine {
+  id          String    @id @default(uuid()) @db.Uuid
+  orderCostId String    @db.Uuid
+  orderCost   OrderCost @relation(fields: [orderCostId], references: [id], onDelete: Cascade)
+  name        String
+  costPerBag  Decimal   @db.Decimal(10, 4)
+  createdAt   DateTime  @default(now())
+
+  @@index([orderCostId])
+}
+
+// ─────────────────────────────────────────────────────────────
+// Workforce — workers + daily attendance
+// ─────────────────────────────────────────────────────────────
+
+/// A factory worker. Attendance is marked per day (see Attendance).
+model Worker {
+  id         String       @id @default(uuid()) @db.Uuid
+  name       String
+  phone      String?
+  role       String? // freetext, e.g. "Machine operator", "Ladies work", "Helper"
+  active     Boolean      @default(true)
+  createdAt  DateTime     @default(now())
+  updatedAt  DateTime     @updatedAt
+
+  attendance Attendance[]
+
+  @@index([active])
+}
+
+/// One worker's status on one calendar day. Unique per (worker, day).
+model Attendance {
+  id        String           @id @default(uuid()) @db.Uuid
+  workerId  String           @db.Uuid
+  worker    Worker           @relation(fields: [workerId], references: [id], onDelete: Cascade)
+  date      DateTime         @db.Date
+  status    AttendanceStatus
+  note      String?
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+
+  @@unique([workerId, date])
   @@index([date])
 }

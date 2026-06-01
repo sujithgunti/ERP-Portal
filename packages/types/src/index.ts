@@ -27,6 +27,34 @@ export const OrderStatus = {
 } as const;
 export type OrderStatus = (typeof OrderStatus)[keyof typeof OrderStatus];
 
+export const ExpenseCategory = {
+  ELECTRICITY: 'ELECTRICITY',
+  LABOUR: 'LABOUR',
+  RENT: 'RENT',
+  COOLANT: 'COOLANT',
+  GUM: 'GUM',
+  TRANSPORT: 'TRANSPORT',
+  MACHINE_MAINTENANCE: 'MACHINE_MAINTENANCE',
+  BOILER: 'BOILER',
+  WATER: 'WATER',
+  OTHER: 'OTHER',
+} as const;
+export type ExpenseCategory = (typeof ExpenseCategory)[keyof typeof ExpenseCategory];
+
+/** Display order + labels for expense categories. */
+export const EXPENSE_CATEGORIES: ExpenseCategory[] = [
+  ExpenseCategory.ELECTRICITY,
+  ExpenseCategory.LABOUR,
+  ExpenseCategory.RENT,
+  ExpenseCategory.COOLANT,
+  ExpenseCategory.GUM,
+  ExpenseCategory.TRANSPORT,
+  ExpenseCategory.MACHINE_MAINTENANCE,
+  ExpenseCategory.BOILER,
+  ExpenseCategory.WATER,
+  ExpenseCategory.OTHER,
+];
+
 export const ProductionStage = {
   PAPER_PROCUREMENT: 'PAPER_PROCUREMENT',
   PRINTING: 'PRINTING',
@@ -102,4 +130,145 @@ export interface DashboardSummary {
   dueSoon: number;
   delayedOrders: number;
   stageDistribution: Record<ProductionStage, number>;
+}
+
+// ---- Costing: monthly expense ledger + per-order cost breakdown ----
+
+export interface ExpenseItemRow {
+  id: string;
+  category: ExpenseCategory;
+  amount: number;
+  note: string | null;
+  createdAt: string;
+}
+
+export interface ExpensePeriodRow {
+  id: string;
+  month: number; // 1-12
+  year: number;
+  totalBagsProduced: number;
+  note: string | null;
+  totalExpense: number; // Σ items.amount
+  overheadPerBag: number; // totalExpense / totalBagsProduced (0 if no bags)
+  itemCount: number;
+  createdAt: string;
+  items?: ExpenseItemRow[]; // present on detail fetch
+}
+
+export interface CreateExpensePeriodDto {
+  month: number;
+  year: number;
+  totalBagsProduced?: number;
+  note?: string;
+}
+
+export interface UpdateExpensePeriodDto {
+  month?: number;
+  year?: number;
+  totalBagsProduced?: number;
+  note?: string;
+}
+
+export interface CreateExpenseItemDto {
+  category: ExpenseCategory;
+  amount: number;
+  note?: string;
+}
+
+export interface UpdateExpenseItemDto {
+  category?: ExpenseCategory;
+  amount?: number;
+  note?: string;
+}
+
+export interface MaterialLineDto {
+  name: string;
+  costPerBag: number;
+}
+
+export interface MaterialLineRow extends MaterialLineDto {
+  id: string;
+}
+
+export interface SetOrderCostDto {
+  overheadPeriodId?: string | null;
+  sellingPricePerBag?: number | null;
+  note?: string;
+  materialLines: MaterialLineDto[];
+}
+
+// ---- Workforce: workers + daily attendance ----
+
+export const AttendanceStatus = {
+  PRESENT: 'PRESENT',
+  ABSENT: 'ABSENT',
+  HALF_DAY: 'HALF_DAY',
+} as const;
+export type AttendanceStatus = (typeof AttendanceStatus)[keyof typeof AttendanceStatus];
+
+export interface WorkerRow {
+  id: string;
+  name: string;
+  phone: string | null;
+  role: string | null;
+  active: boolean;
+  createdAt: string;
+}
+
+export interface CreateWorkerDto {
+  name: string;
+  phone?: string;
+  role?: string;
+  active?: boolean;
+}
+
+export interface UpdateWorkerDto {
+  name?: string;
+  phone?: string;
+  role?: string;
+  active?: boolean;
+}
+
+/** One worker's mark for a given day (status null = not marked yet). */
+export interface AttendanceRosterRow {
+  workerId: string;
+  name: string;
+  role: string | null;
+  attendanceId: string | null;
+  status: AttendanceStatus | null;
+  note: string | null;
+}
+
+export interface MarkAttendanceDto {
+  workerId: string;
+  date: string; // ISO date (YYYY-MM-DD)
+  status: AttendanceStatus;
+  note?: string;
+}
+
+/** Per-worker monthly tally. */
+export interface AttendanceSummaryRow {
+  workerId: string;
+  name: string;
+  role: string | null;
+  present: number;
+  absent: number;
+  halfDay: number;
+}
+
+export interface OrderCostBreakdown {
+  orderId: string;
+  quantity: number;
+  materialLines: MaterialLineRow[];
+  materialPerBag: number;
+  overheadPeriodId: string | null;
+  overheadPeriod: { id: string; month: number; year: number } | null;
+  overheadPerBag: number;
+  costPerBag: number;
+  totalCost: number;
+  sellingPricePerBag: number | null;
+  marginPerBag: number | null;
+  totalMargin: number | null;
+  marginPct: number | null;
+  note: string | null;
 }

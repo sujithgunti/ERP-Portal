@@ -7,6 +7,7 @@ import { useApi } from '@/lib/use-api';
 import type { OrderDetail } from '@/lib/types';
 import { Card, StatusBadge, PriorityTag, ProgressBar, stageLabel, stageProgress } from '@/components/admin/ui';
 import { OrderActions } from '@/components/admin/order-actions';
+import { OrderCostCard } from '@/components/admin/order-cost-form';
 
 export default function OrderDetailPage() {
   const params = useParams<{ id: string }>();
@@ -89,6 +90,8 @@ export default function OrderDetailPage() {
           })}
         </ol>
       </Card>
+
+      <OrderCostCard orderId={order.id} />
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         <Card className="p-6">

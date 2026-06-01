@@ -8,6 +8,8 @@ const NAV = [
   { href: '/admin', label: 'Dashboard', icon: GridIcon, exact: true },
   { href: '/admin/orders', label: 'Orders', icon: BoxIcon },
   { href: '/admin/clients', label: 'Clients', icon: UsersIcon },
+  { href: '/admin/expenses', label: 'Expenses', icon: RupeeIcon },
+  { href: '/admin/attendance', label: 'Attendance', icon: CheckIcon },
 ];
 
 export function Sidebar() {
@@ -64,6 +66,24 @@ function BoxIcon() {
     <svg width="17" height="17" viewBox="0 0 24 24" fill="none" aria-hidden>
       <path d="M21 8 12 3 3 8v8l9 5 9-5V8Z" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round" />
       <path d="m3 8 9 5 9-5M12 13v8" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+function CheckIcon() {
+  return (
+    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" aria-hidden>
+      <path d="M9 11l3 3L22 4" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+function RupeeIcon() {
+  return (
+    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" aria-hidden>
+      <path d="M7 4h10M7 8h10M7 4c5 0 7 1.5 7 4s-2 4-7 4l7 8"
+        stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   );
 }
