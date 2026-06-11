@@ -1,0 +1,47 @@
+name: Deploy to VPS
+
+# Auto-deploy on every push to main. Builds on the server and restarts PM2.
+on:
+  push:
+    branches: [main]
+  workflow_dispatch: {} # allow manual run from the Actions tab
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy over SSH
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          port: ${{ secrets.VPS_PORT }}
+          command_timeout: 30m
+          script: |
+            set -e
+            export PATH="$PATH:/usr/local/bin:/usr/bin:/root/.local/share/pnpm"
+            corepack enable >/dev/null 2>&1 || true
+
+            cd /root/ERP-Portal
+            echo "==> Fetching latest main"
+            git fetch --all
+            git reset --hard origin/main
+
+            echo "==> Installing deps"
+            pnpm install --frozen-lockfile
+
+            echo "==> Building"
+            pnpm --filter @erp/types build
+            pnpm --filter api db:generate
+            pnpm --filter api build
+            pnpm --filter web build
+
+            echo "==> Restarting PM2"
+            pm2 restart erp-api erp-web --update-env
+            pm2 save
+            echo "==> Done"
