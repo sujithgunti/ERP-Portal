@@ -6,8 +6,6 @@ import { Card, inr } from '@/components/admin/ui';
 import { Modal } from '@/components/ui/modal';
 import { useToast } from '@/lib/store/ui-store';
 import { useCostingStore } from '@/lib/store/costing-store';
-import { useExpensesStore } from '@/lib/store/expenses-store';
-import { MONTHS } from '@/components/admin/expense-period-form';
 
 export function OrderCostCard({ orderId }: { orderId: string }) {
   const data = useCostingStore((s) => s.byOrder[orderId] ?? null);
@@ -65,14 +63,7 @@ export function OrderCostCard({ orderId }: { orderId: string }) {
           {/* Totals */}
           <div className="space-y-3 rounded-xl bg-paper-deep/25 p-5">
             <Row label="Material / bag" value={inr(data.materialPerBag, 4)} />
-            <Row
-              label={
-                data.overheadPeriod
-                  ? `Overhead / bag (${MONTHS[data.overheadPeriod.month - 1]} ${data.overheadPeriod.year})`
-                  : 'Overhead / bag'
-              }
-              value={data.overheadPeriod ? inr(data.overheadPerBag, 4) : '— no month'}
-            />
+            <Row label="Overhead / bag" value={inr(data.overheadPerBag, 4)} />
             <div className="flex items-center justify-between border-t border-ink-faint/15 pt-3">
               <span className="text-sm font-semibold text-ink">Cost / bag</span>
               <span className="font-display text-2xl text-pine">{inr(data.costPerBag, 4)}</span>
@@ -101,7 +92,7 @@ export function OrderCostCard({ orderId }: { orderId: string }) {
         </div>
       )}
 
-      <Modal open={editing} onClose={() => setEditing(false)} size="2xl" title="Edit cost" subtitle="Set material lines, pick the overhead month, and an optional selling price.">
+      <Modal open={editing} onClose={() => setEditing(false)} size="2xl" title="Edit cost" subtitle="Set material lines, overhead per bag, and an optional selling price.">
         {data ? (
           <CostForm
             orderId={orderId}
@@ -137,24 +128,22 @@ function CostForm({
   onSaved: () => void;
 }) {
   const toast = useToast();
-  const periods = useExpensesStore((s) => s.periods);
-  const fetchPeriods = useExpensesStore((s) => s.fetchPeriods);
   const setCost = useCostingStore((s) => s.setCost);
-  useEffect(() => {
-    fetchPeriods();
-  }, [fetchPeriods]);
   const [lines, setLines] = useState<MaterialLineDto[]>(
     breakdown.materialLines.length > 0
       ? breakdown.materialLines.map((l) => ({ name: l.name, costPerBag: l.costPerBag }))
       : [{ name: '', costPerBag: 0 }],
   );
-  const [overheadPeriodId, setOverheadPeriodId] = useState<string>(breakdown.overheadPeriodId ?? '');
+  const [overhead, setOverhead] = useState<string>(
+    breakdown.overheadPerBag ? String(breakdown.overheadPerBag) : '',
+  );
   const [sellingPrice, setSellingPrice] = useState<string>(
     breakdown.sellingPricePerBag != null ? String(breakdown.sellingPricePerBag) : '',
   );
   const [saving, setSaving] = useState(false);
 
   const materialPerBag = lines.reduce((sum, l) => sum + (Number(l.costPerBag) || 0), 0);
+  const costPerBag = materialPerBag + (Number(overhead) || 0);
 
   function setLine(i: number, patch: Partial<MaterialLineDto>) {
     setLines((prev) => prev.map((l, idx) => (idx === i ? { ...l, ...patch } : l)));
@@ -174,7 +163,7 @@ function CostForm({
     setSaving(true);
     try {
       await setCost(orderId, {
-        overheadPeriodId: overheadPeriodId || null,
+        overheadPerBag: overhead.trim() ? Number(overhead) : null,
         sellingPricePerBag: sellingPrice.trim() ? Number(sellingPrice) : null,
         materialLines: cleaned,
       });
@@ -193,28 +182,37 @@ function CostForm({
           <p className="text-sm font-semibold text-ink">Material lines (₹ / bag)</p>
           <p className="text-sm text-ink-soft">Subtotal: <span className="font-semibold text-ink">{inr(materialPerBag, 4)}</span></p>
         </div>
+        <div className="mb-1 flex items-center gap-2 px-1 text-xs font-medium text-ink-faint">
+          <span className="flex-1">Material</span>
+          <span className="w-32 shrink-0">₹ / bag</span>
+          <span className="w-7 shrink-0" />
+        </div>
         <div className="space-y-2">
           {lines.map((l, i) => (
             <div key={i} className="flex items-center gap-2">
-              <input
-                value={l.name}
-                onChange={(e) => setLine(i, { name: e.target.value })}
-                placeholder="Paper / Handle / Printing"
-                className="field flex-1"
-              />
-              <input
-                type="number"
-                min={0}
-                step="0.0001"
-                value={l.costPerBag}
-                onChange={(e) => setLine(i, { costPerBag: Number(e.target.value) })}
-                placeholder="0.00"
-                className="field w-32"
-              />
+              <div className="flex-1">
+                <input
+                  value={l.name}
+                  onChange={(e) => setLine(i, { name: e.target.value })}
+                  placeholder="Paper / Handle / Printing"
+                  className="field"
+                />
+              </div>
+              <div className="w-32 shrink-0">
+                <input
+                  type="number"
+                  min={0}
+                  step="0.0001"
+                  value={l.costPerBag}
+                  onChange={(e) => setLine(i, { costPerBag: Number(e.target.value) })}
+                  placeholder="0.00"
+                  className="field"
+                />
+              </div>
               <button
                 type="button"
                 onClick={() => removeLine(i)}
-                className="rounded-md px-2 py-2 text-sm font-medium text-red-700 hover:bg-red-50"
+                className="w-7 shrink-0 rounded-md py-2 text-sm font-medium text-red-700 hover:bg-red-50"
                 aria-label="Remove line"
               >
                 ✕
@@ -229,15 +227,8 @@ function CostForm({
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div className="space-y-1.5">
-          <label htmlFor="ohm" className="block text-sm font-semibold text-ink">Overhead month</label>
-          <select id="ohm" value={overheadPeriodId} onChange={(e) => setOverheadPeriodId(e.target.value)} className="field">
-            <option value="">— none —</option>
-            {(periods ?? []).map((p) => (
-              <option key={p.id} value={p.id}>
-                {MONTHS[p.month - 1]} {p.year} ({inr(p.overheadPerBag, 2)}/bag)
-              </option>
-            ))}
-          </select>
+          <label htmlFor="overhead" className="block text-sm font-semibold text-ink">Overhead / bag (₹)</label>
+          <input id="overhead" type="number" min={0} step="0.0001" value={overhead} onChange={(e) => setOverhead(e.target.value)} className="field" placeholder="e.g. 5" />
         </div>
         <div className="space-y-1.5">
           <label htmlFor="sell" className="block text-sm font-semibold text-ink">
@@ -245,6 +236,10 @@ function CostForm({
           </label>
           <input id="sell" type="number" min={0} step="0.0001" value={sellingPrice} onChange={(e) => setSellingPrice(e.target.value)} className="field" placeholder="e.g. 15" />
         </div>
+      </div>
+
+      <div className="rounded-lg bg-paper-deep/30 px-4 py-2.5 text-sm">
+        Cost / bag = material + overhead = <span className="font-semibold text-ink">{inr(costPerBag, 4)}</span>
       </div>
 
       <div className="flex items-center gap-3">

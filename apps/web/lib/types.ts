@@ -1,12 +1,12 @@
 import type { OrderStatus, Priority, ProductionStage } from '@erp/types';
 
-// Re-export costing contracts from the shared package for web-side imports.
+// Re-export shared contracts for web-side imports.
 export type {
-  ExpenseCategory,
-  ExpenseItemRow,
-  ExpensePeriodRow,
-  CreateExpensePeriodDto,
-  CreateExpenseItemDto,
+  ExpenseDirection,
+  DailyExpenseRow,
+  CreateDailyExpenseDto,
+  UpdateDailyExpenseDto,
+  DailyExpenseDay,
   MaterialLineDto,
   MaterialLineRow,
   SetOrderCostDto,
@@ -18,12 +18,19 @@ export type {
   AttendanceRosterRow,
   MarkAttendanceDto,
   AttendanceSummaryRow,
+  MachineRow,
+  CreateMachineDto,
+  UpdateMachineDto,
+  MachineProductionRosterRow,
+  SetMachineProductionDto,
+  MachineSummaryRow,
 } from '@erp/types';
 
 export interface ClientRow {
   id: string;
   name: string;
-  contact: string | null;
+  gstNumber: string | null;
+  phone: string | null;
   createdAt: string;
 }
 
@@ -57,7 +64,8 @@ export interface OrderDetail extends OrderRow {
   printingType: string | null;
   handleType: string | null;
   lamination: boolean;
+  notes: string | null;
   deliveredAt: string | null;
-  client: { id: string; name: string; contact: string | null };
+  client: { id: string; name: string; gstNumber: string | null; phone: string | null };
   dailyUpdates: DailyUpdateRow[];
 }

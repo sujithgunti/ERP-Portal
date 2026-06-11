@@ -2,20 +2,15 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import type { Prisma } from '@prisma/client';
 import type { OrderCostBreakdown } from '@erp/types';
 import { PrismaService } from '../database/prisma.service';
-import { ExpensesService } from '../expenses/expenses.service';
 import { SetOrderCostDto } from './dto/set-order-cost.dto';
 
 const COST_INCLUDE = {
   materialLines: { orderBy: { createdAt: 'asc' } },
-  overheadPeriod: true,
 } satisfies Prisma.OrderCostInclude;
 
 @Injectable()
 export class CostingService {
-  constructor(
-    private readonly prisma: PrismaService,
-    private readonly expenses: ExpensesService,
-  ) {}
+  constructor(private readonly prisma: PrismaService) {}
 
   /** Get the cost breakdown for an order, creating an empty cost record on first access. */
   async getBreakdown(orderId: string): Promise<OrderCostBreakdown> {
@@ -36,29 +31,22 @@ export class CostingService {
     return this.compute(orderId, order.quantity, cost);
   }
 
-  /** Replace the order's material lines + overhead period + selling price in one transaction. */
+  /** Replace the order's material lines + manual overhead + selling price in one transaction. */
   async setCost(orderId: string, dto: SetOrderCostDto): Promise<OrderCostBreakdown> {
     const order = await this.prisma.order.findUnique({ where: { id: orderId } });
     if (!order) throw new NotFoundException('Order not found');
-
-    if (dto.overheadPeriodId) {
-      const period = await this.prisma.expensePeriod.findUnique({
-        where: { id: dto.overheadPeriodId },
-      });
-      if (!period) throw new NotFoundException('Expense period not found');
-    }
 
     const cost = await this.prisma.$transaction(async (tx) => {
       const upserted = await tx.orderCost.upsert({
         where: { orderId },
         create: {
           orderId,
-          overheadPeriodId: dto.overheadPeriodId ?? null,
+          overheadPerBag: dto.overheadPerBag ?? null,
           sellingPricePerBag: dto.sellingPricePerBag ?? null,
           note: dto.note,
         },
         update: {
-          overheadPeriodId: dto.overheadPeriodId ?? null,
+          overheadPerBag: dto.overheadPerBag ?? null,
           sellingPricePerBag: dto.sellingPricePerBag ?? null,
           note: dto.note,
         },
@@ -84,11 +72,11 @@ export class CostingService {
     return this.compute(orderId, order.quantity, cost);
   }
 
-  private async compute(
+  private compute(
     orderId: string,
     quantity: number,
     cost: Prisma.OrderCostGetPayload<{ include: typeof COST_INCLUDE }>,
-  ): Promise<OrderCostBreakdown> {
+  ): OrderCostBreakdown {
     const materialLines = cost.materialLines.map((l) => ({
       id: l.id,
       name: l.name,
@@ -96,9 +84,7 @@ export class CostingService {
     }));
     const materialPerBag = materialLines.reduce((sum, l) => sum + l.costPerBag, 0);
 
-    const overheadPerBag = cost.overheadPeriodId
-      ? await this.expenses.overheadPerBag(cost.overheadPeriodId)
-      : 0;
+    const overheadPerBag = cost.overheadPerBag != null ? Number(cost.overheadPerBag) : 0;
 
     const costPerBag = materialPerBag + overheadPerBag;
     const totalCost = costPerBag * quantity;
@@ -117,14 +103,6 @@ export class CostingService {
       quantity,
       materialLines,
       materialPerBag,
-      overheadPeriodId: cost.overheadPeriodId,
-      overheadPeriod: cost.overheadPeriod
-        ? {
-            id: cost.overheadPeriod.id,
-            month: cost.overheadPeriod.month,
-            year: cost.overheadPeriod.year,
-          }
-        : null,
       overheadPerBag,
       costPerBag,
       totalCost,

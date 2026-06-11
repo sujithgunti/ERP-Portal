@@ -8,6 +8,7 @@ import { useToast } from '@/lib/store/ui-store';
 import { useAttendanceStore } from '@/lib/store/attendance-store';
 import { useWorkersStore } from '@/lib/store/workers-store';
 import { ManageWorkersModal } from '@/components/admin/manage-workers';
+import { DatePicker } from '@/components/ui/date-picker';
 
 function todayStr(): string {
   const d = new Date();
@@ -78,7 +79,7 @@ export default function AttendancePage() {
       <div className="mb-6 flex flex-wrap items-center gap-4">
         <div className="space-y-1.5">
           <label htmlFor="date" className="block text-sm font-semibold text-ink">Date</label>
-          <input id="date" type="date" value={date} max={todayStr()} onChange={(e) => setDate(e.target.value)} className="field w-auto" />
+          <DatePicker id="date" value={date} onChange={setDate} max={todayStr()} className="w-64" />
         </div>
       </div>
 

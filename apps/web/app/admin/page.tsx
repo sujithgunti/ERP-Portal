@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import type { DashboardSummary, ProductionStage } from '@erp/types';
+import type { DashboardSummary } from '@erp/types';
 import { PRODUCTION_STAGE_ORDER } from '@erp/types';
 import { useApi } from '@/lib/use-api';
 import type { OrderRow } from '@/lib/types';
@@ -15,8 +15,15 @@ export default function AdminDashboard() {
     return <p className="py-20 text-center text-sm text-ink-faint">Loading dashboard…</p>;
   }
 
-  const maxStage = Math.max(1, ...Object.values(summary.stageDistribution));
   const recent = orders.slice(0, 6);
+
+  // Order-wise stages: group non-delivered orders under their current stage.
+  const ordersByStage = PRODUCTION_STAGE_ORDER.filter((s) => s !== 'DELIVERED')
+    .map((stage) => ({
+      stage,
+      orders: orders.filter((o) => o.status !== 'DELIVERED' && o.currentStage === stage),
+    }))
+    .filter((g) => g.orders.length > 0);
 
   return (
     <>
@@ -35,21 +42,31 @@ export default function AdminDashboard() {
       <div className="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-5">
         <Card className="p-6 lg:col-span-2">
           <h2 className="font-display text-lg text-pine">Stage distribution</h2>
-          <p className="mt-0.5 text-xs text-ink-soft">Active orders by production stage.</p>
-          <ul className="mt-5 space-y-3">
-            {PRODUCTION_STAGE_ORDER.filter((s) => s !== 'DELIVERED').map((stage: ProductionStage) => {
-              const count = summary.stageDistribution[stage] ?? 0;
-              return (
-                <li key={stage} className="flex items-center gap-3">
-                  <span className="w-40 shrink-0 truncate text-sm text-ink-soft">{stageLabel(stage)}</span>
-                  <div className="h-2 flex-1 overflow-hidden rounded-full bg-paper-deep">
-                    <div className="h-full rounded-full bg-pine-moss" style={{ width: `${(count / maxStage) * 100}%` }} />
+          <p className="mt-0.5 text-xs text-ink-soft">Orders in each production stage.</p>
+          {ordersByStage.length === 0 ? (
+            <p className="mt-5 text-sm text-ink-faint">No orders in production.</p>
+          ) : (
+            <ul className="mt-5 max-h-[28rem] space-y-4 overflow-y-auto pr-1">
+              {ordersByStage.map(({ stage, orders: list }) => (
+                <li key={stage}>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-semibold text-ink">{stageLabel(stage)}</span>
+                    <span className="rounded-full bg-paper-deep px-2 py-0.5 text-xs font-semibold text-ink-soft">{list.length}</span>
                   </div>
-                  <span className="w-6 text-right text-sm font-semibold text-ink">{count}</span>
+                  <ul className="mt-1.5 space-y-1">
+                    {list.map((o) => (
+                      <li key={o.id}>
+                        <Link href={`/admin/orders/${o.id}`} className="flex items-center justify-between rounded-md px-2 py-1 text-sm hover:bg-paper-deep/40">
+                          <span className="truncate text-ink">{o.name}</span>
+                          <span className="ml-2 shrink-0 text-xs text-ink-faint">{o.orderCode}</span>
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
                 </li>
-              );
-            })}
-          </ul>
+              ))}
+            </ul>
+          )}
         </Card>
 
         <Card className="overflow-hidden lg:col-span-3">

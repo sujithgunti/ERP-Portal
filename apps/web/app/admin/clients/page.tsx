@@ -26,7 +26,8 @@ export default function ClientsPage() {
             <thead className="bg-paper-deep/40 text-xs uppercase tracking-wide text-ink-faint">
               <tr>
                 <th className="px-6 py-3 font-semibold">Name</th>
-                <th className="px-3 py-3 font-semibold">Contact</th>
+                <th className="px-3 py-3 font-semibold">GST number</th>
+                <th className="px-3 py-3 font-semibold">Phone</th>
                 <th className="px-3 py-3 font-semibold">Added</th>
                 <th className="px-6 py-3 text-right font-semibold">Actions</th>
               </tr>
@@ -35,7 +36,8 @@ export default function ClientsPage() {
               {clients.map((c) => (
                 <tr key={c.id} className="border-t border-ink-faint/10 hover:bg-paper-deep/20">
                   <td className="px-6 py-3.5 font-medium text-ink">{c.name}</td>
-                  <td className="px-3 py-3.5 text-ink-soft">{c.contact ?? '—'}</td>
+                  <td className="px-3 py-3.5 text-ink-soft">{c.gstNumber ?? '—'}</td>
+                  <td className="px-3 py-3.5 text-ink-soft">{c.phone ?? '—'}</td>
                   <td className="px-3 py-3.5 text-ink-soft">
                     {new Date(c.createdAt).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' })}
                   </td>

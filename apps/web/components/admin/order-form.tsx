@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { Field, ErrorNote, SubmitButton } from '@/components/auth-fields';
+import { DatePicker } from '@/components/ui/date-picker';
 import { prismaApi, ApiError } from '@/lib/api';
 import type { ClientRow, OrderDetail } from '@/lib/types';
 
@@ -20,6 +21,7 @@ export function OrderForm({
 }) {
   const [error, setError] = useState<string | undefined>();
   const [pending, setPending] = useState(false);
+  const [deadline, setDeadline] = useState(order?.deadline ? order.deadline.slice(0, 10) : '');
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -47,6 +49,7 @@ export function OrderForm({
       printingType: emptyToUndefined(form.get('printingType')),
       handleType: emptyToUndefined(form.get('handleType')),
       lamination: form.get('lamination') === 'on',
+      notes: emptyToUndefined(form.get('notes')),
     };
 
     setPending(true);
@@ -64,8 +67,6 @@ export function OrderForm({
       setPending(false);
     }
   }
-
-  const deadlineDefault = order?.deadline ? order.deadline.slice(0, 10) : undefined;
 
   return (
     <form onSubmit={onSubmit} className="w-full space-y-6">
@@ -93,7 +94,11 @@ export function OrderForm({
 
         <div className="grid grid-cols-2 gap-4">
           <Field id="quantity" label="Quantity" type="number" placeholder="50000" defaultValue={order?.quantity} />
-          <Field id="deadline" label="Deadline" type="date" defaultValue={deadlineDefault} />
+          <div className="space-y-1.5">
+            <label htmlFor="deadline" className="block text-sm font-semibold text-ink">Deadline</label>
+            <DatePicker id="deadline" value={deadline} onChange={setDeadline} placeholder="dd / mm / yyyy" />
+            <input type="hidden" name="deadline" value={deadline} />
+          </div>
         </div>
 
         <div className="space-y-1.5">
@@ -119,6 +124,22 @@ export function OrderForm({
           <input type="checkbox" name="lamination" defaultChecked={order?.lamination ?? false} className="h-4 w-4 rounded border-ink-faint/40 text-pine" />
           Requires lamination
         </label>
+      </FieldGroup>
+
+      <FieldGroup title="Additional notes">
+        <div className="space-y-1.5">
+          <label htmlFor="notes" className="block text-sm font-semibold text-ink">
+            Notes / message <span className="font-normal text-ink-faint">(optional)</span>
+          </label>
+          <textarea
+            id="notes"
+            name="notes"
+            rows={4}
+            placeholder="Any extra instructions, client message, or context for this order…"
+            defaultValue={order?.notes ?? undefined}
+            className="field resize-y"
+          />
+        </div>
       </FieldGroup>
 
       <ErrorNote message={error} />

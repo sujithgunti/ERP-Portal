@@ -4,7 +4,6 @@ import {
   IsNumber,
   IsOptional,
   IsString,
-  IsUUID,
   Min,
   MinLength,
   ValidateNested,
@@ -22,8 +21,9 @@ export class MaterialLineInput {
 
 export class SetOrderCostDto {
   @IsOptional()
-  @IsUUID()
-  overheadPeriodId?: string | null;
+  @IsNumber({ maxDecimalPlaces: 4 })
+  @Min(0)
+  overheadPerBag?: number | null;
 
   @IsOptional()
   @IsNumber({ maxDecimalPlaces: 4 })

@@ -104,6 +104,14 @@ export default function OrderDetailPage() {
               </div>
             ))}
           </dl>
+          {order.notes ? (
+            <div className="mt-4">
+              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-ink-faint">Notes</p>
+              <p className="mt-1.5 whitespace-pre-wrap rounded-lg bg-paper-deep/30 px-3.5 py-3 text-sm text-ink-soft">
+                {order.notes}
+              </p>
+            </div>
+          ) : null}
         </Card>
 
         <Card className="overflow-hidden lg:col-span-2">
@@ -121,8 +129,6 @@ export default function OrderDetailPage() {
                 <tr>
                   <th className="px-6 py-3 font-semibold">Date</th>
                   <th className="px-3 py-3 font-semibold">Stage</th>
-                  <th className="px-3 py-3 font-semibold">Done</th>
-                  <th className="px-3 py-3 font-semibold">Pending</th>
                   <th className="px-6 py-3 font-semibold">Remarks</th>
                 </tr>
               </thead>
@@ -133,8 +139,6 @@ export default function OrderDetailPage() {
                       {new Date(u.date).toLocaleDateString(undefined, { day: 'numeric', month: 'short' })}
                     </td>
                     <td className="px-3 py-3 text-ink">{stageLabel(u.stage)}</td>
-                    <td className="px-3 py-3 tabular-nums text-ink">{u.quantityCompleted.toLocaleString()}</td>
-                    <td className="px-3 py-3 tabular-nums text-ink-soft">{u.quantityPending.toLocaleString()}</td>
                     <td className="px-6 py-3 text-ink-soft">
                       {u.remarks ?? '—'}
                       {u.verified ? (

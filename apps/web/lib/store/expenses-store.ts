@@ -1,90 +1,51 @@
 import { create } from 'zustand';
 import { prismaApi, ApiError } from '@/lib/api';
-import type {
-  ExpensePeriodRow,
-  CreateExpensePeriodDto,
-  CreateExpenseItemDto,
-} from '@/lib/types';
+import type { DailyExpenseDay, CreateDailyExpenseDto } from '@/lib/types';
 
 /**
- * Expenses domain store (Zustand).
+ * Daily expenses store (Zustand) — the incoming/outgoing cash book.
  *
- * ALL `/expenses` API calls live here — components never call `prismaApi`
- * directly. Holds the periods list + the currently-open period detail, plus
- * loading flags. Mutating actions refresh their own state on success and
- * re-throw on failure so the calling component can fire a toast.
+ * ALL `/expenses` API calls live here. Holds recent days (each with its entries
+ * + incoming/outgoing/net totals). Mutating actions refresh state on success
+ * and re-throw on failure so the component can toast.
  */
 
 interface ExpensesState {
-  periods: ExpensePeriodRow[];
-  periodsLoading: boolean;
-  current: ExpensePeriodRow | null;
-  currentLoading: boolean;
+  days: DailyExpenseDay[];
+  loading: boolean;
 
-  fetchPeriods: () => Promise<void>;
-  fetchPeriod: (id: string) => Promise<void>;
-  clearCurrent: () => void;
-
-  createPeriod: (dto: CreateExpensePeriodDto) => Promise<void>;
-  updateBags: (id: string, totalBagsProduced: number) => Promise<void>;
-  addItem: (periodId: string, dto: CreateExpenseItemDto) => Promise<void>;
-  removeItem: (itemId: string, periodId: string) => Promise<void>;
+  fetchRecent: () => Promise<void>;
+  addEntry: (dto: CreateDailyExpenseDto) => Promise<void>;
+  removeEntry: (id: string) => Promise<void>;
 }
 
-/** Swallow 401 (prismaApi already redirects); re-throw everything else. */
 function isRedirected(e: unknown): boolean {
   return e instanceof ApiError && e.status === 401;
 }
 
 export const useExpensesStore = create<ExpensesState>((set, get) => ({
-  periods: [],
-  periodsLoading: false,
-  current: null,
-  currentLoading: false,
+  days: [],
+  loading: false,
 
-  fetchPeriods: async () => {
-    set({ periodsLoading: true });
+  fetchRecent: async () => {
+    set({ loading: true });
     try {
-      const periods = await prismaApi<ExpensePeriodRow[]>('GET', '/expenses/periods');
-      set({ periods });
+      const days = await prismaApi<DailyExpenseDay[]>('GET', '/expenses?days=60');
+      set({ days });
     } catch (e) {
-      if (!isRedirected(e)) set({ periods: [] });
+      if (!isRedirected(e)) set({ days: [] });
     } finally {
-      set({ periodsLoading: false });
+      set({ loading: false });
     }
   },
 
-  fetchPeriod: async (id) => {
-    set({ currentLoading: true });
-    try {
-      const current = await prismaApi<ExpensePeriodRow>('GET', `/expenses/periods/${id}`);
-      set({ current });
-    } catch (e) {
-      if (!isRedirected(e)) set({ current: null });
-    } finally {
-      set({ currentLoading: false });
-    }
+  addEntry: async (dto) => {
+    await prismaApi('POST', '/expenses', dto);
+    await get().fetchRecent();
   },
 
-  clearCurrent: () => set({ current: null }),
-
-  createPeriod: async (dto) => {
-    await prismaApi('POST', '/expenses/periods', dto);
-    await get().fetchPeriods();
-  },
-
-  updateBags: async (id, totalBagsProduced) => {
-    await prismaApi('PATCH', `/expenses/periods/${id}`, { totalBagsProduced });
-    await Promise.all([get().fetchPeriod(id), get().fetchPeriods()]);
-  },
-
-  addItem: async (periodId, dto) => {
-    await prismaApi('POST', `/expenses/periods/${periodId}/items`, dto);
-    await Promise.all([get().fetchPeriod(periodId), get().fetchPeriods()]);
-  },
-
-  removeItem: async (itemId, periodId) => {
-    await prismaApi('DELETE', `/expenses/items/${itemId}`);
-    await Promise.all([get().fetchPeriod(periodId), get().fetchPeriods()]);
+  removeEntry: async (id) => {
+    await prismaApi('DELETE', `/expenses/${id}`);
+    await get().fetchRecent();
   },
 }));

@@ -7,5 +7,9 @@ export class CreateClientDto {
 
   @IsOptional()
   @IsString()
-  contact?: string;
+  gstNumber?: string;
+
+  @IsOptional()
+  @IsString()
+  phone?: string;
 }

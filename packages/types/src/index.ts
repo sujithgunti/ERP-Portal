@@ -27,37 +27,16 @@ export const OrderStatus = {
 } as const;
 export type OrderStatus = (typeof OrderStatus)[keyof typeof OrderStatus];
 
-export const ExpenseCategory = {
-  ELECTRICITY: 'ELECTRICITY',
-  LABOUR: 'LABOUR',
-  RENT: 'RENT',
-  COOLANT: 'COOLANT',
-  GUM: 'GUM',
-  TRANSPORT: 'TRANSPORT',
-  MACHINE_MAINTENANCE: 'MACHINE_MAINTENANCE',
-  BOILER: 'BOILER',
-  WATER: 'WATER',
-  OTHER: 'OTHER',
+export const ExpenseDirection = {
+  INCOMING: 'INCOMING',
+  OUTGOING: 'OUTGOING',
 } as const;
-export type ExpenseCategory = (typeof ExpenseCategory)[keyof typeof ExpenseCategory];
-
-/** Display order + labels for expense categories. */
-export const EXPENSE_CATEGORIES: ExpenseCategory[] = [
-  ExpenseCategory.ELECTRICITY,
-  ExpenseCategory.LABOUR,
-  ExpenseCategory.RENT,
-  ExpenseCategory.COOLANT,
-  ExpenseCategory.GUM,
-  ExpenseCategory.TRANSPORT,
-  ExpenseCategory.MACHINE_MAINTENANCE,
-  ExpenseCategory.BOILER,
-  ExpenseCategory.WATER,
-  ExpenseCategory.OTHER,
-];
+export type ExpenseDirection = (typeof ExpenseDirection)[keyof typeof ExpenseDirection];
 
 export const ProductionStage = {
   PAPER_PROCUREMENT: 'PAPER_PROCUREMENT',
   PRINTING: 'PRINTING',
+  DESIGNING: 'DESIGNING',
   LAMINATION: 'LAMINATION',
   PUNCHING: 'PUNCHING',
   IN_HOUSE_MANUFACTURING: 'IN_HOUSE_MANUFACTURING',
@@ -72,6 +51,7 @@ export type ProductionStage = (typeof ProductionStage)[keyof typeof ProductionSt
 export const PRODUCTION_STAGE_ORDER: ProductionStage[] = [
   ProductionStage.PAPER_PROCUREMENT,
   ProductionStage.PRINTING,
+  ProductionStage.DESIGNING,
   ProductionStage.LAMINATION,
   ProductionStage.PUNCHING,
   ProductionStage.IN_HOUSE_MANUFACTURING,
@@ -100,7 +80,8 @@ export interface OrderSpecifications {
 
 export interface CreateClientDto {
   name: string;
-  contact?: string;
+  gstNumber?: string;
+  phone?: string;
 }
 
 export interface CreateOrderDto {
@@ -114,6 +95,7 @@ export interface CreateOrderDto {
   printingType?: string;
   handleType?: string;
   lamination?: boolean;
+  notes?: string;
 }
 
 export interface CreateDailyUpdateDto {
@@ -132,54 +114,44 @@ export interface DashboardSummary {
   stageDistribution: Record<ProductionStage, number>;
 }
 
-// ---- Costing: monthly expense ledger + per-order cost breakdown ----
+// ---- Daily expenses: incoming / outgoing cash book ----
 
-export interface ExpenseItemRow {
+export interface DailyExpenseRow {
   id: string;
-  category: ExpenseCategory;
+  date: string; // ISO date (YYYY-MM-DD)
+  direction: ExpenseDirection;
   amount: number;
+  category: string | null;
   note: string | null;
   createdAt: string;
 }
 
-export interface ExpensePeriodRow {
-  id: string;
-  month: number; // 1-12
-  year: number;
-  totalBagsProduced: number;
-  note: string | null;
-  totalExpense: number; // Σ items.amount
-  overheadPerBag: number; // totalExpense / totalBagsProduced (0 if no bags)
-  itemCount: number;
-  createdAt: string;
-  items?: ExpenseItemRow[]; // present on detail fetch
-}
-
-export interface CreateExpensePeriodDto {
-  month: number;
-  year: number;
-  totalBagsProduced?: number;
-  note?: string;
-}
-
-export interface UpdateExpensePeriodDto {
-  month?: number;
-  year?: number;
-  totalBagsProduced?: number;
-  note?: string;
-}
-
-export interface CreateExpenseItemDto {
-  category: ExpenseCategory;
+export interface CreateDailyExpenseDto {
+  date: string; // ISO date (YYYY-MM-DD)
+  direction: ExpenseDirection;
   amount: number;
+  category?: string;
   note?: string;
 }
 
-export interface UpdateExpenseItemDto {
-  category?: ExpenseCategory;
+export interface UpdateDailyExpenseDto {
+  date?: string;
+  direction?: ExpenseDirection;
   amount?: number;
+  category?: string;
   note?: string;
 }
+
+/** A single day's cash entries + totals (incoming, outgoing, net). */
+export interface DailyExpenseDay {
+  date: string;
+  incoming: number;
+  outgoing: number;
+  net: number;
+  entries: DailyExpenseRow[];
+}
+
+// ---- Costing: per-order cost breakdown (overhead entered manually) ----
 
 export interface MaterialLineDto {
   name: string;
@@ -191,7 +163,7 @@ export interface MaterialLineRow extends MaterialLineDto {
 }
 
 export interface SetOrderCostDto {
-  overheadPeriodId?: string | null;
+  overheadPerBag?: number | null;
   sellingPricePerBag?: number | null;
   note?: string;
   materialLines: MaterialLineDto[];
@@ -261,8 +233,6 @@ export interface OrderCostBreakdown {
   quantity: number;
   materialLines: MaterialLineRow[];
   materialPerBag: number;
-  overheadPeriodId: string | null;
-  overheadPeriod: { id: string; month: number; year: number } | null;
   overheadPerBag: number;
   costPerBag: number;
   totalCost: number;
@@ -271,4 +241,53 @@ export interface OrderCostBreakdown {
   totalMargin: number | null;
   marginPct: number | null;
   note: string | null;
+}
+
+// ---- Work efficiency: machines + daily bag-production count ----
+
+export interface MachineRow {
+  id: string;
+  name: string;
+  type: string | null;
+  active: boolean;
+  createdAt: string;
+}
+
+export interface CreateMachineDto {
+  name: string;
+  type?: string;
+  active?: boolean;
+}
+
+export interface UpdateMachineDto {
+  name?: string;
+  type?: string;
+  active?: boolean;
+}
+
+/** One machine's output for a given day (bags null = not entered yet). */
+export interface MachineProductionRosterRow {
+  machineId: string;
+  name: string;
+  type: string | null;
+  productionId: string | null;
+  bagsProduced: number | null;
+  note: string | null;
+}
+
+export interface SetMachineProductionDto {
+  machineId: string;
+  date: string; // ISO date (YYYY-MM-DD)
+  bagsProduced: number;
+  note?: string;
+}
+
+/** Per-machine tally over a month. */
+export interface MachineSummaryRow {
+  machineId: string;
+  name: string;
+  type: string | null;
+  totalBags: number;
+  daysRun: number;
+  avgPerDay: number;
 }

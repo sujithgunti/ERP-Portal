@@ -8,6 +8,7 @@ import { CreateDailyUpdateDto } from './dto/create-daily-update.dto';
 const STAGE_ORDER: ProductionStage[] = [
   ProductionStage.PAPER_PROCUREMENT,
   ProductionStage.PRINTING,
+  ProductionStage.DESIGNING,
   ProductionStage.LAMINATION,
   ProductionStage.PUNCHING,
   ProductionStage.IN_HOUSE_MANUFACTURING,
@@ -58,6 +59,7 @@ export class OrdersService {
         printingType: dto.printingType,
         handleType: dto.handleType,
         lamination: dto.lamination ?? false,
+        notes: dto.notes,
       },
     });
   }
@@ -74,6 +76,7 @@ export class OrdersService {
       printingType: dto.printingType,
       handleType: dto.handleType,
       lamination: dto.lamination,
+      notes: dto.notes,
       ...(dto.deadline ? { deadline: new Date(dto.deadline) } : {}),
       ...(dto.clientId ? { client: { connect: { id: dto.clientId } } } : {}),
     };
@@ -94,8 +97,8 @@ export class OrdersService {
         data: {
           orderId,
           stage: dto.stage,
-          quantityCompleted: dto.quantityCompleted,
-          quantityPending: dto.quantityPending,
+          quantityCompleted: dto.quantityCompleted ?? 0,
+          quantityPending: dto.quantityPending ?? 0,
           remarks: dto.remarks,
           date: dto.date ? new Date(dto.date) : new Date(),
           updatedById: userId,

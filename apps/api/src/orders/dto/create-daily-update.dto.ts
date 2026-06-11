@@ -5,13 +5,15 @@ export class CreateDailyUpdateDto {
   @IsEnum(ProductionStage)
   stage!: ProductionStage;
 
+  @IsOptional()
   @IsInt()
   @Min(0)
-  quantityCompleted!: number;
+  quantityCompleted?: number;
 
+  @IsOptional()
   @IsInt()
   @Min(0)
-  quantityPending!: number;
+  quantityPending?: number;
 
   @IsOptional()
   @IsString()

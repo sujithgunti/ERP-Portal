@@ -10,6 +10,7 @@ const NAV = [
   { href: '/admin/clients', label: 'Clients', icon: UsersIcon },
   { href: '/admin/expenses', label: 'Expenses', icon: RupeeIcon },
   { href: '/admin/attendance', label: 'Attendance', icon: CheckIcon },
+  { href: '/admin/work-efficiency', label: 'Work Efficiency', icon: GaugeIcon },
 ];
 
 export function Sidebar() {
@@ -84,6 +85,15 @@ function RupeeIcon() {
     <svg width="17" height="17" viewBox="0 0 24 24" fill="none" aria-hidden>
       <path d="M7 4h10M7 8h10M7 4c5 0 7 1.5 7 4s-2 4-7 4l7 8"
         stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+function GaugeIcon() {
+  return (
+    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" aria-hidden>
+      <path d="M12 13l4-4M3.5 16a9 9 0 1 1 17 0" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
+      <circle cx="12" cy="13" r="1.6" fill="currentColor" />
     </svg>
   );
 }

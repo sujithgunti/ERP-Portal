@@ -61,19 +61,20 @@ System generates the final order report
 
 ## 4. Production Stages
 
-Every order moves through nine ordered stages. The order's `currentStage` always points at exactly one of these. Daily updates record progress within a stage.
+Every order moves through ten ordered stages. The order's `currentStage` always points at exactly one of these. Daily updates record progress within a stage.
 
 | # | Stage | Meaning |
 |---|-------|---------|
 | 1 | **Paper Procurement** | Raw paper sourced/purchased for the order. |
 | 2 | **Printing** | Client artwork printed on the stock. |
-| 3 | **Lamination** | Lamination applied (if spec requires). |
-| 4 | **Punching** | Bag shapes/handles punched. |
-| 5 | **In-House Manufacturing** | Core bag forming (side/bottom pasting, folding). |
-| 6 | **Handle Pasting** | Handles attached. |
-| 7 | **Packing** | Finished bags packed for dispatch. |
-| 8 | **Dispatch** | Order shipped to client. |
-| 9 | **Delivered** | Confirmed received by client. Order closes. |
+| 3 | **Designing** | Design step applied after printing. |
+| 4 | **Lamination** | Lamination applied (if spec requires). |
+| 5 | **Punching** | Bag shapes/handles punched. |
+| 6 | **In-House Manufacturing** | Core bag forming (side/bottom pasting, folding). |
+| 7 | **Handle Pasting** | Handles attached. |
+| 8 | **Packing** | Finished bags packed for dispatch. |
+| 9 | **Dispatch** | Order shipped to client. |
+| 10 | **Delivered** | Confirmed received by client. Order closes. |
 
 Stages are **sequential** but a daily update may report partial completion (e.g. "Printing: 10,000 done, 40,000 pending").
 
@@ -84,11 +85,18 @@ Stages are **sequential** but a daily update may report partial completion (e.g.
 | Entity | Key fields |
 |--------|-----------|
 | **User** | name, email, passwordHash, role (`ADMIN` / `SUPERVISOR` / `PARTNER`) |
-| **Client** | name, contact info |
-| **Order** | orderCode (`ORD-001`), client, name, quantity, deadline, specifications (size, GSM, printing type, handle type, lamination), priority (`HIGH` / `MEDIUM` / `LOW`), status (`ACTIVE` / `DELAYED` / `DELIVERED`), currentStage |
+| **Client** | name, gstNumber (optional), phone (optional) |
+| **Order** | orderCode (`ORD-001`), client, name, quantity, deadline, specifications (size, GSM, printing type, handle type, lamination), notes, priority (`HIGH` / `MEDIUM` / `LOW`), status (`ACTIVE` / `DELAYED` / `DELIVERED`), currentStage |
 | **DailyUpdate** | order, date, stage, quantityCompleted, quantityPending, remarks, updatedBy |
+| **OrderCost** | order (1:1), material lines (name + cost/bag), overheadPerBag (manual), sellingPricePerBag → computes cost/bag, total, margin |
+| **MaterialLine** | orderCost, name, costPerBag |
+| **DailyExpense** | date, direction (`INCOMING` / `OUTGOING`), amount, category, note → daily in/out/net cash book |
+| **Worker** | name, phone, role, active |
+| **Attendance** | worker, date, status (`PRESENT` / `ABSENT` / `HALF_DAY`) — one per worker/day |
+| **Machine** | name, type, active |
+| **MachineProduction** | machine, date, bagsProduced — one per machine/day (Work Efficiency) |
 
-**Deferred entities (documented in feature map, not built in v1):** `WorkerEntry`, `MachineCount`, `DelayRecord`, `Notification`.
+**Deferred entities (documented in feature map):** `DelayRecord`, `Notification`, per-worker wages → auto labour cost.
 
 ---
 
@@ -158,14 +166,18 @@ Final order report combines: order created date, production start, per-stage com
 
 ## 10. Scope: MVP vs Future
 
-### ✅ MVP (Phase 1 — this build)
+### ✅ Built (Phase 1 + early Phase 2)
 - RBAC auth (Admin / Supervisor / Partner).
-- Client management (Admin).
-- Order management with specs, priority, deadline (Admin).
-- 9-stage production tracking via daily updates (Admin).
+- Client management (Admin) — name, GST number, phone.
+- Order management with specs, notes, priority, deadline (Admin).
+- 10-stage production tracking via daily updates (Admin).
 - Read/monitor views (Supervisor, Partner).
 - Work verification (Supervisor).
-- Dashboard: today's summary, completion %, delayed orders, stage distribution.
+- Dashboard: today's summary, delayed orders, **order-wise stage distribution** (orders listed under each stage).
+- **Costing** — per-order material lines + manual overhead/bag + selling price → cost/bag, total cost, margin.
+- **Daily expenses** — incoming/outgoing cash book with per-day in/out/net totals.
+- **Attendance** — workers + daily Present/Absent/Half-day marking + monthly summary.
+- **Work Efficiency** — machines + daily bags-produced count per machine + monthly totals.
 
 ### 🔜 Phase 2
 - Lady-worker manual production entry (side/bottom/handle pasting counts, auto-total).

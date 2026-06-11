@@ -52,4 +52,8 @@ export class CreateOrderDto {
   @IsOptional()
   @IsBoolean()
   lamination?: boolean;
+
+  @IsOptional()
+  @IsString()
+  notes?: string;
 }

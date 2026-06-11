@@ -26,10 +26,11 @@ function ClientForm({
     setError(undefined);
     const form = new FormData(e.currentTarget);
     const name = String(form.get('name') ?? '').trim();
-    const contact = String(form.get('contact') ?? '').trim();
+    const gstNumber = String(form.get('gstNumber') ?? '').trim();
+    const phone = String(form.get('phone') ?? '').trim();
     if (!name) return setError('Client name is required.');
 
-    const payload = { name, contact: contact || undefined };
+    const payload = { name, gstNumber: gstNumber || undefined, phone: phone || undefined };
     setPending(true);
     try {
       if (mode === 'edit' && client) await prismaApi('PATCH', `/clients/${client.id}`, payload);
@@ -44,7 +45,8 @@ function ClientForm({
   return (
     <form onSubmit={onSubmit} className="w-full space-y-4">
       <Field id="name" label="Client name" placeholder="Taaza" defaultValue={client?.name} />
-      <Field id="contact" label="Contact (optional)" placeholder="orders@taaza.com" required={false} defaultValue={client?.contact ?? undefined} />
+      <Field id="gstNumber" label="GST number (optional)" placeholder="29ABCDE1234F1Z5" required={false} defaultValue={client?.gstNumber ?? undefined} />
+      <Field id="phone" label="Phone (optional)" placeholder="+91 98765 43210" required={false} defaultValue={client?.phone ?? undefined} />
       <ErrorNote message={error} />
       <div className="flex items-center gap-3">
         <div className="w-44">
