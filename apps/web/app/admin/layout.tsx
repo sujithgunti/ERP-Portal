@@ -1,7 +1,8 @@
 'use client';
 
+import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { getStoredUser, clearAuth } from '@/lib/auth-client';
+import { useAuthStore } from '@/lib/store/auth-store';
 import { RequireRole } from '@/components/auth/require-role';
 import { Sidebar } from '@/components/admin/sidebar';
 
@@ -15,10 +16,16 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
 function AdminShell({ children }: { children: React.ReactNode }) {
   const router = useRouter();
-  const user = getStoredUser();
+  const user = useAuthStore((s) => s.user);
+  const hydrate = useAuthStore((s) => s.hydrate);
+  const clear = useAuthStore((s) => s.clear);
+
+  useEffect(() => {
+    hydrate();
+  }, [hydrate]);
 
   const logout = () => {
-    clearAuth();
+    clear();
     router.replace('/login');
   };
 

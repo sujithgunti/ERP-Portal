@@ -71,19 +71,27 @@ export class WorkersService {
         role: w.role,
         attendanceId: rec?.id ?? null,
         status: rec?.status ?? null,
+        checkIn: rec?.checkIn ?? null,
+        checkOut: rec?.checkOut ?? null,
         note: rec?.note ?? null,
       };
     });
   }
 
-  /** Upsert one worker's status for one day. */
+  /** Upsert one worker's status (+ time period) for one day. */
   async mark(dto: MarkAttendanceDto): Promise<Attendance> {
     await this.ensureWorker(dto.workerId);
     const date = dayUTC(dto.date);
+    // Present / Half-day require a time period; Absent clears it.
+    if (dto.status !== 'ABSENT' && (!dto.checkIn || !dto.checkOut)) {
+      throw new BadRequestException('A time period (check-in and check-out) is required to mark present.');
+    }
+    const checkIn = dto.status === 'ABSENT' ? null : (dto.checkIn ?? null);
+    const checkOut = dto.status === 'ABSENT' ? null : (dto.checkOut ?? null);
     return this.prisma.attendance.upsert({
       where: { workerId_date: { workerId: dto.workerId, date } },
-      create: { workerId: dto.workerId, date, status: dto.status, note: dto.note },
-      update: { status: dto.status, note: dto.note },
+      create: { workerId: dto.workerId, date, status: dto.status, checkIn, checkOut, note: dto.note },
+      update: { status: dto.status, checkIn, checkOut, note: dto.note },
     });
   }
 

@@ -2,7 +2,16 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Wordmark } from '@/components/icons';
+import {
+  Wordmark,
+  GridIcon,
+  BoxIcon,
+  UsersIcon,
+  RupeeIcon,
+  CheckIcon,
+  GaugeIcon,
+  ShieldIcon,
+} from '@/components/icons';
 
 const NAV = [
   { href: '/admin', label: 'Dashboard', icon: GridIcon, exact: true },
@@ -11,6 +20,7 @@ const NAV = [
   { href: '/admin/expenses', label: 'Expenses', icon: RupeeIcon },
   { href: '/admin/attendance', label: 'Attendance', icon: CheckIcon },
   { href: '/admin/work-efficiency', label: 'Work Efficiency', icon: GaugeIcon },
+  { href: '/admin/roles', label: 'Manage Roles', icon: ShieldIcon },
 ];
 
 export function Sidebar() {
@@ -48,62 +58,5 @@ export function Sidebar() {
         <p className="mt-1">Eco-bag manufacturing ERP</p>
       </div>
     </aside>
-  );
-}
-
-function GridIcon() {
-  return (
-    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" aria-hidden>
-      <rect x="3" y="3" width="7" height="7" rx="1.5" stroke="currentColor" strokeWidth="1.7" />
-      <rect x="14" y="3" width="7" height="7" rx="1.5" stroke="currentColor" strokeWidth="1.7" />
-      <rect x="3" y="14" width="7" height="7" rx="1.5" stroke="currentColor" strokeWidth="1.7" />
-      <rect x="14" y="14" width="7" height="7" rx="1.5" stroke="currentColor" strokeWidth="1.7" />
-    </svg>
-  );
-}
-
-function BoxIcon() {
-  return (
-    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" aria-hidden>
-      <path d="M21 8 12 3 3 8v8l9 5 9-5V8Z" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round" />
-      <path d="m3 8 9 5 9-5M12 13v8" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round" />
-    </svg>
-  );
-}
-
-function CheckIcon() {
-  return (
-    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" aria-hidden>
-      <path d="M9 11l3 3L22 4" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
-      <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  );
-}
-
-function RupeeIcon() {
-  return (
-    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" aria-hidden>
-      <path d="M7 4h10M7 8h10M7 4c5 0 7 1.5 7 4s-2 4-7 4l7 8"
-        stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  );
-}
-
-function GaugeIcon() {
-  return (
-    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" aria-hidden>
-      <path d="M12 13l4-4M3.5 16a9 9 0 1 1 17 0" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
-      <circle cx="12" cy="13" r="1.6" fill="currentColor" />
-    </svg>
-  );
-}
-
-function UsersIcon() {
-  return (
-    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" aria-hidden>
-      <circle cx="9" cy="8" r="3.2" stroke="currentColor" strokeWidth="1.7" />
-      <path d="M3.5 20a5.5 5.5 0 0 1 11 0M16 5.2a3.2 3.2 0 0 1 0 5.6M17.5 20a5.5 5.5 0 0 0-2.5-4.6"
-        stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
-    </svg>
   );
 }

@@ -1,8 +1,9 @@
 'use client';
 
+import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import type { Role } from '@erp/types';
-import { getStoredUser, clearAuth } from '@/lib/auth-client';
+import { useAuthStore } from '@/lib/store/auth-store';
 import { RequireRole } from '@/components/auth/require-role';
 
 // Lightweight authed landing for Supervisor / Partner — full dashboards next.
@@ -16,10 +17,16 @@ export function Workspace({ area, role }: { area: string; role: Role }) {
 
 function WorkspaceInner({ area }: { area: string }) {
   const router = useRouter();
-  const user = getStoredUser();
+  const user = useAuthStore((s) => s.user);
+  const hydrate = useAuthStore((s) => s.hydrate);
+  const clear = useAuthStore((s) => s.clear);
+
+  useEffect(() => {
+    hydrate();
+  }, [hydrate]);
 
   const logout = () => {
-    clearAuth();
+    clear();
     router.replace('/login');
   };
 

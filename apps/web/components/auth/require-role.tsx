@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import type { Role } from '@erp/types';
-import { getStoredUser } from '@/lib/auth-client';
+import { useAuthStore } from '@/lib/store/auth-store';
 
 const HOME_BY_ROLE: Record<string, string> = {
   ADMIN: '/admin',
@@ -18,10 +18,12 @@ const HOME_BY_ROLE: Record<string, string> = {
  */
 export function RequireRole({ role, children }: { role: Role; children: React.ReactNode }) {
   const router = useRouter();
+  const hydrate = useAuthStore((s) => s.hydrate);
   const [allowed, setAllowed] = useState(false);
 
   useEffect(() => {
-    const user = getStoredUser();
+    hydrate();
+    const user = useAuthStore.getState().user;
     if (!user) {
       router.replace('/login');
       return;
@@ -31,7 +33,7 @@ export function RequireRole({ role, children }: { role: Role; children: React.Re
       return;
     }
     setAllowed(true);
-  }, [role, router]);
+  }, [role, router, hydrate]);
 
   if (!allowed) {
     return (

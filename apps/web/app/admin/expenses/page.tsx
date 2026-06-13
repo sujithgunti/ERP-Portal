@@ -6,6 +6,7 @@ import { useExpensesStore } from '@/lib/store/expenses-store';
 import { useToast } from '@/lib/store/ui-store';
 import { SectionHeader, EmptyState, StatCard, inr } from '@/components/admin/ui';
 import { DatePicker } from '@/components/ui/date-picker';
+import { DropdownOptionSelector } from '@/components/ui/select';
 
 function isoToday(): string {
   const d = new Date();
@@ -192,10 +193,15 @@ function EntryModal({
             </div>
             <div className="space-y-1.5">
               <label htmlFor="dir" className="block text-sm font-semibold text-ink">Direction</label>
-              <select id="dir" value={direction} onChange={(e) => setDirection(e.target.value as ExpenseDirection)} className="field">
-                <option value="OUTGOING">Outgoing</option>
-                <option value="INCOMING">Incoming</option>
-              </select>
+              <DropdownOptionSelector
+                id="dir"
+                value={direction}
+                onChange={(v) => setDirection(v as ExpenseDirection)}
+                options={[
+                  { value: 'OUTGOING', label: 'Outgoing' },
+                  { value: 'INCOMING', label: 'Incoming' },
+                ]}
+              />
             </div>
           </div>
           <div className="grid grid-cols-2 gap-4">

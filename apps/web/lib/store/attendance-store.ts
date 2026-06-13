@@ -6,6 +6,8 @@ import type { AttendanceRosterRow, AttendanceStatus } from '@/lib/types';
 interface AttendanceRecord {
   id: string;
   status: AttendanceStatus;
+  checkIn: string | null;
+  checkOut: string | null;
   note: string | null;
 }
 
@@ -23,7 +25,12 @@ interface AttendanceState {
 
   setDate: (date: string) => void;
   fetchRoster: (date: string) => Promise<void>;
-  mark: (workerId: string, status: AttendanceStatus) => Promise<void>;
+  mark: (
+    workerId: string,
+    status: AttendanceStatus,
+    checkIn?: string | null,
+    checkOut?: string | null,
+  ) => Promise<void>;
 }
 
 export const useAttendanceStore = create<AttendanceState>((set, get) => ({
@@ -46,18 +53,31 @@ export const useAttendanceStore = create<AttendanceState>((set, get) => ({
     }
   },
 
-  mark: async (workerId, status) => {
+  mark: async (workerId, status, checkIn, checkOut) => {
     const date = get().date;
     set((s) => ({ saving: { ...s.saving, [workerId]: true } }));
     try {
       // POST upserts the mark and returns the record. Patch the roster in the
       // store from the response — no follow-up GET. The page reads roster from
       // this state, so the UI (rows + stat counts) updates instantly.
-      const rec = await prismaApi<AttendanceRecord>('POST', '/attendance', { workerId, date, status });
+      const rec = await prismaApi<AttendanceRecord>('POST', '/attendance', {
+        workerId,
+        date,
+        status,
+        checkIn: checkIn ?? null,
+        checkOut: checkOut ?? null,
+      });
       set((s) => ({
         roster: s.roster.map((r) =>
           r.workerId === workerId
-            ? { ...r, status: rec.status, attendanceId: rec.id, note: rec.note ?? null }
+            ? {
+                ...r,
+                status: rec.status,
+                attendanceId: rec.id,
+                checkIn: rec.checkIn ?? null,
+                checkOut: rec.checkOut ?? null,
+                note: rec.note ?? null,
+              }
             : r,
         ),
       }));

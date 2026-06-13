@@ -6,7 +6,7 @@ import { useState } from 'react';
 import type { AuthUser } from '@erp/types';
 import { Field, PasswordField, ErrorNote, SubmitButton } from '@/components/auth-fields';
 import { prismaApi, ApiError } from '@/lib/api';
-import { storeAuth } from '@/lib/auth-client';
+import { useAuthStore } from '@/lib/store/auth-store';
 
 const HOME_BY_ROLE: Record<string, string> = {
   ADMIN: '/admin',
@@ -16,6 +16,7 @@ const HOME_BY_ROLE: Record<string, string> = {
 
 export default function LoginPage() {
   const router = useRouter();
+  const setAuth = useAuthStore((s) => s.setAuth);
   const [error, setError] = useState<string | undefined>();
   const [pending, setPending] = useState(false);
 
@@ -38,7 +39,7 @@ export default function LoginPage() {
         { email, password },
         { skipAuth: true },
       );
-      storeAuth(data.accessToken, data.user);
+      setAuth(data.accessToken, data.user);
       router.push(HOME_BY_ROLE[data.user.role] ?? '/');
     } catch (err) {
       if (err instanceof ApiError) {

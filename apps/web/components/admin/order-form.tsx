@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { Field, ErrorNote, SubmitButton } from '@/components/auth-fields';
 import { DatePicker } from '@/components/ui/date-picker';
+import { DropdownOptionSelector } from '@/components/ui/select';
 import { prismaApi, ApiError } from '@/lib/api';
 import type { ClientRow, OrderDetail } from '@/lib/types';
 
@@ -22,6 +23,8 @@ export function OrderForm({
   const [error, setError] = useState<string | undefined>();
   const [pending, setPending] = useState(false);
   const [deadline, setDeadline] = useState(order?.deadline ? order.deadline.slice(0, 10) : '');
+  const [clientId, setClientId] = useState(order?.client.id ?? '');
+  const [priority, setPriority] = useState(order?.priority ?? 'MEDIUM');
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -74,12 +77,14 @@ export function OrderForm({
         {mode === 'create' ? (
           <div className="space-y-1.5">
             <label htmlFor="clientId" className="block text-sm font-semibold text-ink">Client</label>
-            <select id="clientId" name="clientId" required defaultValue="" className="field">
-              <option value="" disabled>Select a client…</option>
-              {(clients ?? []).map((c) => (
-                <option key={c.id} value={c.id}>{c.name}</option>
-              ))}
-            </select>
+            <DropdownOptionSelector
+              id="clientId"
+              name="clientId"
+              value={clientId}
+              onChange={setClientId}
+              placeholder="Select a client…"
+              options={(clients ?? []).map((c) => ({ value: c.id, label: c.name }))}
+            />
           </div>
         ) : (
           <div className="space-y-1.5">
@@ -103,11 +108,17 @@ export function OrderForm({
 
         <div className="space-y-1.5">
           <label htmlFor="priority" className="block text-sm font-semibold text-ink">Priority</label>
-          <select id="priority" name="priority" defaultValue={order?.priority ?? 'MEDIUM'} className="field">
-            <option value="HIGH">High</option>
-            <option value="MEDIUM">Medium</option>
-            <option value="LOW">Low</option>
-          </select>
+          <DropdownOptionSelector
+            id="priority"
+            name="priority"
+            value={priority}
+            onChange={(v) => setPriority(v as typeof priority)}
+            options={[
+              { value: 'HIGH', label: 'High' },
+              { value: 'MEDIUM', label: 'Medium' },
+              { value: 'LOW', label: 'Low' },
+            ]}
+          />
         </div>
       </FieldGroup>
 

@@ -70,6 +70,33 @@ export interface AuthUser {
   role: Role;
 }
 
+// ---- User / role management (Admin creates login users) ----
+
+export interface UserRow {
+  id: string;
+  name: string;
+  email: string;
+  role: Role;
+  createdAt: string;
+}
+
+export interface CreateUserDto {
+  name: string;
+  email: string;
+  role: Role;
+}
+
+export interface UpdateUserDto {
+  name?: string;
+  role?: Role;
+}
+
+/** Returned once on create / password reset — the plaintext password to share. */
+export interface CredentialResult {
+  user: UserRow;
+  password: string;
+}
+
 export interface OrderSpecifications {
   size?: string;
   gsm?: number;
@@ -208,6 +235,8 @@ export interface AttendanceRosterRow {
   role: string | null;
   attendanceId: string | null;
   status: AttendanceStatus | null;
+  checkIn: string | null; // "HH:MM"
+  checkOut: string | null; // "HH:MM"
   note: string | null;
 }
 
@@ -215,6 +244,8 @@ export interface MarkAttendanceDto {
   workerId: string;
   date: string; // ISO date (YYYY-MM-DD)
   status: AttendanceStatus;
+  checkIn?: string | null; // "HH:MM"
+  checkOut?: string | null; // "HH:MM"
   note?: string;
 }
 

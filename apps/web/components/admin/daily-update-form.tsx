@@ -5,6 +5,7 @@ import { PRODUCTION_STAGE_ORDER } from '@erp/types';
 import type { ProductionStage } from '@erp/types';
 import { ErrorNote, SubmitButton } from '@/components/auth-fields';
 import { stageLabel } from '@/components/admin/ui';
+import { DropdownOptionSelector } from '@/components/ui/select';
 import { prismaApi, ApiError } from '@/lib/api';
 
 export function DailyUpdateForm({
@@ -18,6 +19,7 @@ export function DailyUpdateForm({
   onCancel?: () => void;
   onSuccess?: () => void;
 }) {
+  const [stage, setStage] = useState<ProductionStage>(currentStage);
   const [error, setError] = useState<string | undefined>();
   const [pending, setPending] = useState(false);
 
@@ -47,11 +49,13 @@ export function DailyUpdateForm({
     <form onSubmit={onSubmit} className="w-full space-y-4">
       <div className="space-y-1.5">
         <label htmlFor="stage" className="block text-sm font-semibold text-ink">Production stage</label>
-        <select id="stage" name="stage" defaultValue={currentStage} className="field">
-          {PRODUCTION_STAGE_ORDER.map((s) => (
-            <option key={s} value={s}>{stageLabel(s)}</option>
-          ))}
-        </select>
+        <DropdownOptionSelector
+          id="stage"
+          name="stage"
+          value={stage}
+          onChange={(v) => setStage(v as ProductionStage)}
+          options={PRODUCTION_STAGE_ORDER.map((s) => ({ value: s, label: stageLabel(s) }))}
+        />
       </div>
 
       <div className="space-y-1.5">

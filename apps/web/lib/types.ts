@@ -24,6 +24,11 @@ export type {
   MachineProductionRosterRow,
   SetMachineProductionDto,
   MachineSummaryRow,
+  Role,
+  UserRow,
+  CreateUserDto,
+  UpdateUserDto,
+  CredentialResult,
 } from '@erp/types';
 
 export interface ClientRow {

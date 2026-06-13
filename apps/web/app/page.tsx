@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { getStoredUser } from '@/lib/auth-client';
+import { useAuthStore } from '@/lib/store/auth-store';
 
 const HOME_BY_ROLE: Record<string, string> = {
   ADMIN: '/admin',
@@ -12,10 +12,12 @@ const HOME_BY_ROLE: Record<string, string> = {
 
 export default function Home() {
   const router = useRouter();
+  const hydrate = useAuthStore((s) => s.hydrate);
   useEffect(() => {
-    const user = getStoredUser();
+    hydrate();
+    const user = useAuthStore.getState().user;
     router.replace(user ? (HOME_BY_ROLE[user.role] ?? '/login') : '/login');
-  }, [router]);
+  }, [router, hydrate]);
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-paper">

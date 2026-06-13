@@ -13,5 +13,13 @@ export class MarkAttendanceDto {
 
   @IsOptional()
   @IsString()
+  checkIn?: string | null;
+
+  @IsOptional()
+  @IsString()
+  checkOut?: string | null;
+
+  @IsOptional()
+  @IsString()
   note?: string;
 }
