@@ -10,7 +10,8 @@ import type { WorkerRow, CreateWorkerDto, UpdateWorkerDto } from '@/lib/types';
 interface WorkersState {
   workers: WorkerRow[];
   loading: boolean;
-  fetchWorkers: () => Promise<void>;
+  loaded: boolean;
+  fetchWorkers: (force?: boolean) => Promise<void>;
   createWorker: (dto: CreateWorkerDto) => Promise<void>;
   updateWorker: (id: string, dto: UpdateWorkerDto) => Promise<void>;
   removeWorker: (id: string) => Promise<void>;
@@ -19,11 +20,13 @@ interface WorkersState {
 export const useWorkersStore = create<WorkersState>((set, get) => ({
   workers: [],
   loading: false,
+  loaded: false,
 
-  fetchWorkers: async () => {
+  fetchWorkers: async (force = false) => {
+    if (get().loaded && !force) return;
     set({ loading: true });
     try {
-      set({ workers: await prismaApi<WorkerRow[]>('GET', '/workers') });
+      set({ workers: await prismaApi<WorkerRow[]>('GET', '/workers'), loaded: true });
     } catch (e) {
       if (!(e instanceof ApiError && e.status === 401)) set({ workers: [] });
     } finally {
@@ -33,16 +36,16 @@ export const useWorkersStore = create<WorkersState>((set, get) => ({
 
   createWorker: async (dto) => {
     await prismaApi('POST', '/workers', dto);
-    await get().fetchWorkers();
+    await get().fetchWorkers(true);
   },
 
   updateWorker: async (id, dto) => {
     await prismaApi('PATCH', `/workers/${id}`, dto);
-    await get().fetchWorkers();
+    await get().fetchWorkers(true);
   },
 
   removeWorker: async (id) => {
     await prismaApi('DELETE', `/workers/${id}`);
-    await get().fetchWorkers();
+    await get().fetchWorkers(true);
   },
 }));

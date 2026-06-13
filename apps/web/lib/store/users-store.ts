@@ -11,8 +11,9 @@ import type { UserRow, CreateUserDto, UpdateUserDto, CredentialResult } from '@/
 interface UsersState {
   users: UserRow[];
   loading: boolean;
+  loaded: boolean;
 
-  fetchUsers: () => Promise<void>;
+  fetchUsers: (force?: boolean) => Promise<void>;
   createUser: (dto: CreateUserDto) => Promise<CredentialResult>;
   updateUser: (id: string, dto: UpdateUserDto) => Promise<void>;
   resetPassword: (id: string, password: string) => Promise<CredentialResult>;
@@ -22,12 +23,14 @@ interface UsersState {
 export const useUsersStore = create<UsersState>((set, get) => ({
   users: [],
   loading: false,
+  loaded: false,
 
-  fetchUsers: async () => {
+  fetchUsers: async (force = false) => {
+    if (get().loaded && !force) return;
     set({ loading: true });
     try {
       const users = await prismaApi<UserRow[]>('GET', '/users');
-      set({ users });
+      set({ users, loaded: true });
     } catch (e) {
       if (!(e instanceof ApiError && e.status === 401)) set({ users: [] });
     } finally {
@@ -37,13 +40,13 @@ export const useUsersStore = create<UsersState>((set, get) => ({
 
   createUser: async (dto) => {
     const res = await prismaApi<CredentialResult>('POST', '/users', dto);
-    await get().fetchUsers();
+    await get().fetchUsers(true);
     return res;
   },
 
   updateUser: async (id, dto) => {
     await prismaApi('PATCH', `/users/${id}`, dto);
-    await get().fetchUsers();
+    await get().fetchUsers(true);
   },
 
   resetPassword: async (id, password) => {
@@ -52,6 +55,6 @@ export const useUsersStore = create<UsersState>((set, get) => ({
 
   removeUser: async (id) => {
     await prismaApi('DELETE', `/users/${id}`);
-    await get().fetchUsers();
+    await get().fetchUsers(true);
   },
 }));

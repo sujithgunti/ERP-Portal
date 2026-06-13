@@ -21,10 +21,11 @@ interface AttendanceState {
   date: string; // YYYY-MM-DD
   roster: AttendanceRosterRow[];
   loading: boolean;
+  loadedDate: string | null; // which date the roster is cached for
   saving: Record<string, boolean>; // per-worker mark in flight
 
   setDate: (date: string) => void;
-  fetchRoster: (date: string) => Promise<void>;
+  fetchRoster: (date: string, force?: boolean) => Promise<void>;
   mark: (
     workerId: string,
     status: AttendanceStatus,
@@ -37,15 +38,20 @@ export const useAttendanceStore = create<AttendanceState>((set, get) => ({
   date: '',
   roster: [],
   loading: false,
+  loadedDate: null,
   saving: {},
 
   setDate: (date) => set({ date }),
 
-  fetchRoster: async (date) => {
+  fetchRoster: async (date, force = false) => {
+    if (!force && get().loadedDate === date) {
+      set({ date });
+      return;
+    }
     set({ loading: true, date });
     try {
       const roster = await prismaApi<AttendanceRosterRow[]>('GET', `/attendance?date=${date}`);
-      set({ roster });
+      set({ roster, loadedDate: date });
     } catch (e) {
       if (!(e instanceof ApiError && e.status === 401)) set({ roster: [] });
     } finally {

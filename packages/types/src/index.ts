@@ -97,6 +97,51 @@ export interface CredentialResult {
   password: string;
 }
 
+// ---- Reports (read-only, date-ranged tables) ----
+
+export interface OrderReportRow {
+  orderCode: string;
+  name: string;
+  client: string;
+  quantity: number;
+  priority: Priority;
+  status: OrderStatus;
+  currentStage: ProductionStage;
+  deadline: string;
+  createdAt: string;
+  deliveredAt: string | null;
+  materialPerBag: number;
+  overheadPerBag: number;
+  costPerBag: number;
+  totalCost: number;
+  sellingPricePerBag: number | null;
+  totalMargin: number | null;
+}
+
+export interface ExpenseReportRow {
+  date: string;
+  direction: ExpenseDirection;
+  category: string | null;
+  amount: number;
+  note: string | null;
+}
+
+export interface WorkEfficiencyReportRow {
+  date: string;
+  machine: string;
+  type: string | null;
+  bagsProduced: number;
+}
+
+/** Generic report envelope: rows + a summary line. */
+export interface ReportResult<Row> {
+  from: string;
+  to: string;
+  count: number;
+  rows: Row[];
+  totals: Record<string, number>;
+}
+
 export interface OrderSpecifications {
   size?: string;
   gsm?: number;

@@ -29,6 +29,10 @@ export type {
   CreateUserDto,
   UpdateUserDto,
   CredentialResult,
+  OrderReportRow,
+  ExpenseReportRow,
+  WorkEfficiencyReportRow,
+  ReportResult,
 } from '@erp/types';
 
 export interface ClientRow {

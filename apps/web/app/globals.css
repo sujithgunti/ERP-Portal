@@ -68,3 +68,50 @@ body {
 ::selection {
   background: rgba(200, 162, 106, 0.35);
 }
+
+/* ── Print: show only the active report when printing (Export PDF) ── */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  #report-print,
+  #report-print * {
+    visibility: visible;
+  }
+  #report-print {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    padding: 0;
+    color: #1a1a1a;
+  }
+  #report-print table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 11px;
+  }
+  #report-print th,
+  #report-print td {
+    border: 1px solid #d8d2c4;
+    padding: 6px 8px;
+    text-align: left;
+  }
+  #report-print thead th {
+    background: #0e2a20;
+    color: #f6f2e9;
+  }
+  @page {
+    size: A4 landscape;
+    margin: 14mm;
+  }
+}
+
+/* Print area is hidden on screen; only used by the print dialog. */
+#report-print {
+  display: none;
+}
+@media print {
+  #report-print {
+    display: block;
+  }
+}

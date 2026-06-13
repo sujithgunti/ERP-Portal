@@ -30,19 +30,21 @@ function isoToday(): string {
 interface MachinesState {
   machines: MachineRow[];
   machinesLoading: boolean;
+  machinesLoaded: boolean;
 
   date: string;
   roster: MachineProductionRosterRow[];
   rosterLoading: boolean;
+  loadedRosterDate: string | null; // which date the roster is cached for
   saving: Record<string, boolean>;
 
-  fetchMachines: () => Promise<void>;
+  fetchMachines: (force?: boolean) => Promise<void>;
   createMachine: (dto: CreateMachineDto) => Promise<void>;
   updateMachine: (id: string, dto: UpdateMachineDto) => Promise<void>;
   removeMachine: (id: string) => Promise<void>;
 
   setDate: (date: string) => void;
-  fetchRoster: (date: string) => Promise<void>;
+  fetchRoster: (date: string, force?: boolean) => Promise<void>;
   setProduction: (machineId: string, bagsProduced: number) => Promise<void>;
 }
 
@@ -53,17 +55,20 @@ function isRedirected(e: unknown): boolean {
 export const useMachinesStore = create<MachinesState>((set, get) => ({
   machines: [],
   machinesLoading: false,
+  machinesLoaded: false,
 
   date: isoToday(),
   roster: [],
   rosterLoading: false,
+  loadedRosterDate: null,
   saving: {},
 
-  fetchMachines: async () => {
+  fetchMachines: async (force = false) => {
+    if (get().machinesLoaded && !force) return;
     set({ machinesLoading: true });
     try {
       const machines = await prismaApi<MachineRow[]>('GET', '/machines');
-      set({ machines });
+      set({ machines, machinesLoaded: true });
     } catch (e) {
       if (!isRedirected(e)) set({ machines: [] });
     } finally {
@@ -73,17 +78,17 @@ export const useMachinesStore = create<MachinesState>((set, get) => ({
 
   createMachine: async (dto) => {
     await prismaApi('POST', '/machines', dto);
-    await Promise.all([get().fetchMachines(), get().fetchRoster(get().date)]);
+    await Promise.all([get().fetchMachines(true), get().fetchRoster(get().date, true)]);
   },
 
   updateMachine: async (id, dto) => {
     await prismaApi('PATCH', `/machines/${id}`, dto);
-    await Promise.all([get().fetchMachines(), get().fetchRoster(get().date)]);
+    await Promise.all([get().fetchMachines(true), get().fetchRoster(get().date, true)]);
   },
 
   removeMachine: async (id) => {
     await prismaApi('DELETE', `/machines/${id}`);
-    await Promise.all([get().fetchMachines(), get().fetchRoster(get().date)]);
+    await Promise.all([get().fetchMachines(true), get().fetchRoster(get().date, true)]);
   },
 
   setDate: (date) => {
@@ -91,14 +96,16 @@ export const useMachinesStore = create<MachinesState>((set, get) => ({
     get().fetchRoster(date);
   },
 
-  fetchRoster: async (date) => {
+  fetchRoster: async (date, force = false) => {
+    // Cache per date — skip refetch when revisiting the same day.
+    if (!force && get().loadedRosterDate === date) return;
     set({ rosterLoading: true });
     try {
       const roster = await prismaApi<MachineProductionRosterRow[]>(
         'GET',
         `/machine-production?date=${date}`,
       );
-      set({ roster });
+      set({ roster, loadedRosterDate: date });
     } catch (e) {
       if (!isRedirected(e)) set({ roster: [] });
     } finally {

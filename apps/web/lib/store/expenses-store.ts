@@ -13,8 +13,9 @@ import type { DailyExpenseDay, CreateDailyExpenseDto } from '@/lib/types';
 interface ExpensesState {
   days: DailyExpenseDay[];
   loading: boolean;
+  loaded: boolean; // cache flag — true once fetched
 
-  fetchRecent: () => Promise<void>;
+  fetchRecent: (force?: boolean) => Promise<void>;
   addEntry: (dto: CreateDailyExpenseDto) => Promise<void>;
   removeEntry: (id: string) => Promise<void>;
 }
@@ -26,12 +27,15 @@ function isRedirected(e: unknown): boolean {
 export const useExpensesStore = create<ExpensesState>((set, get) => ({
   days: [],
   loading: false,
+  loaded: false,
 
-  fetchRecent: async () => {
+  // Cache-first: skip the API call if already loaded (unless forced).
+  fetchRecent: async (force = false) => {
+    if (get().loaded && !force) return;
     set({ loading: true });
     try {
       const days = await prismaApi<DailyExpenseDay[]>('GET', '/expenses?days=60');
-      set({ days });
+      set({ days, loaded: true });
     } catch (e) {
       if (!isRedirected(e)) set({ days: [] });
     } finally {
@@ -41,11 +45,11 @@ export const useExpensesStore = create<ExpensesState>((set, get) => ({
 
   addEntry: async (dto) => {
     await prismaApi('POST', '/expenses', dto);
-    await get().fetchRecent();
+    await get().fetchRecent(true);
   },
 
   removeEntry: async (id) => {
     await prismaApi('DELETE', `/expenses/${id}`);
-    await get().fetchRecent();
+    await get().fetchRecent(true);
   },
 }));

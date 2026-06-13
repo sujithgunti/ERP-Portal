@@ -133,7 +133,7 @@ export function DatePicker({
       </button>
 
       {open ? (
-        <div className="absolute z-50 mt-2 w-full min-w-[16rem] rounded-2xl border border-ink-faint/15 bg-paper-card p-4 shadow-card">
+        <div className="absolute z-50 mt-2 w-full rounded-2xl border border-ink-faint/15 bg-paper-card p-3 shadow-card">
           <div className="mb-3 flex items-center justify-between">
             <p className="font-display text-base text-pine">
               {MONTHS[view.m - 1]} {view.y}

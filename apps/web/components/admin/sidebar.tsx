@@ -11,6 +11,7 @@ import {
   CheckIcon,
   GaugeIcon,
   ShieldIcon,
+  ReportIcon,
 } from '@/components/icons';
 
 const NAV = [
@@ -20,6 +21,7 @@ const NAV = [
   { href: '/admin/expenses', label: 'Expenses', icon: RupeeIcon },
   { href: '/admin/attendance', label: 'Attendance', icon: CheckIcon },
   { href: '/admin/work-efficiency', label: 'Work Efficiency', icon: GaugeIcon },
+  { href: '/admin/reports', label: 'Reports', icon: ReportIcon },
   { href: '/admin/roles', label: 'Manage Roles', icon: ShieldIcon },
 ];
 
