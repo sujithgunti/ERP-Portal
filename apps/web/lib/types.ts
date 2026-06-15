@@ -40,6 +40,7 @@ export interface ClientRow {
   name: string;
   gstNumber: string | null;
   phone: string | null;
+  address: string | null;
   createdAt: string;
 }
 
@@ -52,6 +53,7 @@ export interface OrderRow {
   priority: Priority;
   status: OrderStatus;
   currentStage: ProductionStage;
+  completedStages: ProductionStage[];
   client: { id: string; name: string };
   createdAt: string;
 }
@@ -70,11 +72,12 @@ export interface DailyUpdateRow {
 export interface OrderDetail extends OrderRow {
   size: string | null;
   gsm: number | null;
+  paperType: string | null;
   printingType: string | null;
   handleType: string | null;
   lamination: boolean;
   notes: string | null;
   deliveredAt: string | null;
-  client: { id: string; name: string; gstNumber: string | null; phone: string | null };
+  client: { id: string; name: string; gstNumber: string | null; phone: string | null; address: string | null };
   dailyUpdates: DailyUpdateRow[];
 }

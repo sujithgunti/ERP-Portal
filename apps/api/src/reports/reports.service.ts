@@ -51,6 +51,7 @@ export class ReportsService {
         priority: o.priority,
         status: o.status,
         currentStage: o.currentStage,
+        paperType: o.paperType,
         deadline: o.deadline.toISOString(),
         createdAt: o.createdAt.toISOString(),
         deliveredAt: o.deliveredAt ? o.deliveredAt.toISOString() : null,

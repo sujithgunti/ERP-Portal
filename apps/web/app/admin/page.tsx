@@ -5,7 +5,8 @@ import type { DashboardSummary } from '@erp/types';
 import { PRODUCTION_STAGE_ORDER } from '@erp/types';
 import { useApi } from '@/lib/use-api';
 import type { OrderRow } from '@/lib/types';
-import { Card, StatCard, StatusBadge, ProgressBar, stageLabel, stageProgress } from '@/components/admin/ui';
+import { Card, StatCard, StatusBadge, ProgressBar, stageLabel, progressPct } from '@/components/admin/ui';
+import { DeadlineCalendar } from '@/components/admin/deadline-calendar';
 
 export default function AdminDashboard() {
   const { data: summary, loading: l1 } = useApi<DashboardSummary>('GET', '/dashboard');
@@ -14,8 +15,6 @@ export default function AdminDashboard() {
   if (l1 || l2 || !summary || !orders) {
     return <p className="py-20 text-center text-sm text-ink-faint">Loading dashboard…</p>;
   }
-
-  const recent = orders.slice(0, 6);
 
   // Order-wise stages: group non-delivered orders under their current stage.
   const ordersByStage = PRODUCTION_STAGE_ORDER.filter((s) => s !== 'DELIVERED')
@@ -71,16 +70,15 @@ export default function AdminDashboard() {
 
         <Card className="overflow-hidden lg:col-span-3">
           <div className="flex items-center justify-between border-b border-ink-faint/12 px-6 py-4">
-            <h2 className="font-display text-lg text-pine">Recent orders</h2>
-            <Link href="/admin/orders" className="text-sm font-semibold text-pine-moss hover:text-pine">
-              View all →
-            </Link>
+            <h2 className="font-display text-lg text-pine">Orders</h2>
+            <span className="text-xs font-semibold text-ink-faint">{orders.length} total</span>
           </div>
-          {recent.length === 0 ? (
+          {orders.length === 0 ? (
             <p className="px-6 py-10 text-center text-sm text-ink-faint">No orders yet.</p>
           ) : (
-            <table className="w-full text-left text-sm">
-              <thead className="text-xs uppercase tracking-wide text-ink-faint">
+            <div className="max-h-[28rem] overflow-auto">
+            <table className="w-full min-w-[36rem] text-left text-sm">
+              <thead className="sticky top-0 z-10 bg-paper-card text-xs uppercase tracking-wide text-ink-faint">
                 <tr>
                   <th className="px-6 py-2.5 font-semibold">Order</th>
                   <th className="px-3 py-2.5 font-semibold">Stage</th>
@@ -89,8 +87,8 @@ export default function AdminDashboard() {
                 </tr>
               </thead>
               <tbody>
-                {recent.map((o) => {
-                  const pct = o.status === 'DELIVERED' ? 100 : stageProgress(o.currentStage);
+                {orders.map((o) => {
+                  const pct = o.status === 'DELIVERED' ? 100 : progressPct(o.completedStages);
                   return (
                     <tr key={o.id} className="border-t border-ink-faint/10">
                       <td className="px-6 py-3">
@@ -112,8 +110,17 @@ export default function AdminDashboard() {
                 })}
               </tbody>
             </table>
+            </div>
           )}
         </Card>
+      </div>
+
+      <div className="mt-6">
+        <DeadlineCalendar
+          items={orders}
+          title="Deadline calendar"
+          subtitle="All order deadlines across the month — overdue in red, delivered in green."
+        />
       </div>
     </>
   );

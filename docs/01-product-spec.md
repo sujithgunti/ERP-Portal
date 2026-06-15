@@ -195,7 +195,7 @@ Final order report combines: order created date, production start, per-stage com
 
 ## 11. Success Criteria (MVP)
 
-- An Admin can create a client, an order with specs, and post daily updates that move it through all 9 stages to delivered.
+- An Admin can create a client, an order with specs, and post daily updates that move it through all 10 stages to delivered.
 - A Supervisor and a Partner can log in and see live order status without being able to edit data.
 - The dashboard accurately shows completion % and flags any order past its deadline as delayed.
 - All access is enforced server-side by role (no client-only gating).

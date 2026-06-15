@@ -2,12 +2,12 @@
 
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
-import { PRODUCTION_STAGE_ORDER } from '@erp/types';
 import { useApi } from '@/lib/use-api';
 import type { OrderDetail } from '@/lib/types';
-import { Card, StatusBadge, PriorityTag, ProgressBar, stageLabel, stageProgress } from '@/components/admin/ui';
+import { Card, StatusBadge, PriorityTag, stageLabel } from '@/components/admin/ui';
 import { OrderActions } from '@/components/admin/order-actions';
 import { OrderCostCard } from '@/components/admin/order-cost-form';
+import { StageChecklist } from '@/components/admin/stage-checklist';
 
 export default function OrderDetailPage() {
   const params = useParams<{ id: string }>();
@@ -25,14 +25,12 @@ export default function OrderDetailPage() {
     );
   }
 
-  const progress = order.status === 'DELIVERED' ? 100 : stageProgress(order.currentStage);
-  const currentIdx = PRODUCTION_STAGE_ORDER.indexOf(order.currentStage);
-
   const specs: [string, string][] = [
     ['Quantity', order.quantity.toLocaleString()],
     ['Deadline', new Date(order.deadline).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' })],
     ['Size', order.size ?? '—'],
     ['GSM', order.gsm != null ? String(order.gsm) : '—'],
+    ['Paper type', order.paperType ?? '—'],
     ['Printing', order.printingType ?? '—'],
     ['Handle', order.handleType ?? '—'],
     ['Lamination', order.lamination ? 'Yes' : 'No'],
@@ -58,37 +56,12 @@ export default function OrderDetailPage() {
       </div>
 
       <Card className="mb-6 p-6">
-        <div className="mb-4 flex items-center justify-between">
-          <div>
-            <h2 className="font-display text-lg text-pine">Production progress</h2>
-            <p className="text-sm text-ink-soft">
-              Current stage: <span className="font-semibold text-ink">{stageLabel(order.currentStage)}</span>
-            </p>
-          </div>
-          <span className="font-display text-3xl text-pine">{progress}%</span>
-        </div>
-        <ProgressBar value={progress} />
-
-        <ol className="mt-6 grid grid-cols-3 gap-3 sm:grid-cols-5 lg:grid-cols-9">
-          {PRODUCTION_STAGE_ORDER.map((s, i) => {
-            const done = order.status === 'DELIVERED' || i < currentIdx;
-            const active = i === currentIdx && order.status !== 'DELIVERED';
-            return (
-              <li key={s} className="flex flex-col items-center gap-1.5 text-center">
-                <span
-                  className={`flex h-7 w-7 items-center justify-center rounded-full text-xs font-semibold ${
-                    done ? 'bg-pine-moss text-paper' : active ? 'bg-kraft text-pine-deep ring-2 ring-kraft/40' : 'bg-paper-deep text-ink-faint'
-                  }`}
-                >
-                  {i + 1}
-                </span>
-                <span className={`text-[11px] leading-tight ${active ? 'font-semibold text-ink' : 'text-ink-faint'}`}>
-                  {stageLabel(s)}
-                </span>
-              </li>
-            );
-          })}
-        </ol>
+        <StageChecklist
+          orderId={order.id}
+          completedStages={order.completedStages}
+          delivered={order.status === 'DELIVERED'}
+          onChanged={refetch}
+        />
       </Card>
 
       <OrderCostCard orderId={order.id} />
@@ -124,7 +97,8 @@ export default function OrderDetailPage() {
               No updates yet. Add the first daily update to start tracking.
             </p>
           ) : (
-            <table className="w-full text-left text-sm">
+            <div className="overflow-x-auto">
+            <table className="w-full min-w-[32rem] text-left text-sm">
               <thead className="bg-paper-deep/40 text-xs uppercase tracking-wide text-ink-faint">
                 <tr>
                   <th className="px-6 py-3 font-semibold">Date</th>
@@ -151,6 +125,7 @@ export default function OrderDetailPage() {
                 ))}
               </tbody>
             </table>
+            </div>
           )}
         </Card>
       </div>

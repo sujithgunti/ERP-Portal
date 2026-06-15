@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/lib/store/auth-store';
 import { RequireRole } from '@/components/auth/require-role';
 import { Sidebar } from '@/components/admin/sidebar';
+import { MobileNav } from '@/components/admin/mobile-nav';
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -34,14 +35,17 @@ function AdminShell({ children }: { children: React.ReactNode }) {
       <Sidebar />
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="sticky top-0 z-20 flex items-center justify-between border-b border-ink-faint/15 bg-paper/85 px-6 py-3.5 backdrop-blur">
-          <span className="text-sm text-ink-faint">Admin Console</span>
-          <div className="flex items-center gap-4">
-            <div className="text-right">
+        <header className="sticky top-0 z-20 flex items-center justify-between gap-3 border-b border-ink-faint/15 bg-paper/85 px-4 py-3.5 backdrop-blur sm:px-6">
+          <div className="flex items-center gap-3">
+            <MobileNav />
+            <span className="hidden text-sm text-ink-faint sm:inline">Admin Console</span>
+          </div>
+          <div className="flex items-center gap-3 sm:gap-4">
+            <div className="hidden text-right sm:block">
               <p className="text-sm font-semibold leading-tight text-ink">{user?.name}</p>
               <p className="text-xs uppercase tracking-wide text-kraft-dark">{user?.role}</p>
             </div>
-            <span className="flex h-9 w-9 items-center justify-center rounded-full bg-pine text-sm font-semibold text-paper">
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-pine text-sm font-semibold text-paper">
               {(user?.name ?? '?').charAt(0).toUpperCase()}
             </span>
             <button
@@ -53,7 +57,7 @@ function AdminShell({ children }: { children: React.ReactNode }) {
           </div>
         </header>
 
-        <main className="grain relative flex-1 px-6 py-8 lg:px-10">
+        <main className="grain relative flex-1 px-4 py-6 sm:px-6 sm:py-8 lg:px-10">
           <div className="relative z-10 mx-auto max-w-6xl">{children}</div>
         </main>
       </div>
