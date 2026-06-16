@@ -35,8 +35,8 @@ export type ExpenseDirection = (typeof ExpenseDirection)[keyof typeof ExpenseDir
 
 export const ProductionStage = {
   PAPER_PROCUREMENT: 'PAPER_PROCUREMENT',
-  PRINTING: 'PRINTING',
   DESIGNING: 'DESIGNING',
+  PRINTING: 'PRINTING',
   LAMINATION: 'LAMINATION',
   PUNCHING: 'PUNCHING',
   IN_HOUSE_MANUFACTURING: 'IN_HOUSE_MANUFACTURING',
@@ -50,8 +50,8 @@ export type ProductionStage = (typeof ProductionStage)[keyof typeof ProductionSt
 /** Ordered list of production stages (pipeline order). */
 export const PRODUCTION_STAGE_ORDER: ProductionStage[] = [
   ProductionStage.PAPER_PROCUREMENT,
-  ProductionStage.PRINTING,
   ProductionStage.DESIGNING,
+  ProductionStage.PRINTING,
   ProductionStage.LAMINATION,
   ProductionStage.PUNCHING,
   ProductionStage.IN_HOUSE_MANUFACTURING,
@@ -60,6 +60,15 @@ export const PRODUCTION_STAGE_ORDER: ProductionStage[] = [
   ProductionStage.DISPATCH,
   ProductionStage.DELIVERED,
 ];
+
+/** Production stages a user checks off (excludes the terminal DELIVERED status). */
+export const PRODUCTION_STAGES: ProductionStage[] = PRODUCTION_STAGE_ORDER.filter(
+  (s) => s !== ProductionStage.DELIVERED,
+);
+
+/** Allowed paper types for an order (fixed dropdown). */
+export const PAPER_TYPES = ['Brown', 'Cyber XL', 'Viva Liner'] as const;
+export type PaperType = (typeof PAPER_TYPES)[number];
 
 // ---- DTO contracts (request/response shapes shared across the wire) ----
 
@@ -107,6 +116,7 @@ export interface OrderReportRow {
   priority: Priority;
   status: OrderStatus;
   currentStage: ProductionStage;
+  paperType: string | null;
   deadline: string;
   createdAt: string;
   deliveredAt: string | null;
@@ -145,6 +155,7 @@ export interface ReportResult<Row> {
 export interface OrderSpecifications {
   size?: string;
   gsm?: number;
+  paperType?: string;
   printingType?: string;
   handleType?: string;
   lamination?: boolean;
@@ -154,6 +165,7 @@ export interface CreateClientDto {
   name: string;
   gstNumber?: string;
   phone?: string;
+  address?: string;
 }
 
 export interface CreateOrderDto {
@@ -164,6 +176,7 @@ export interface CreateOrderDto {
   priority: Priority;
   size?: string;
   gsm?: number;
+  paperType?: string;
   printingType?: string;
   handleType?: string;
   lamination?: boolean;
@@ -176,6 +189,13 @@ export interface CreateDailyUpdateDto {
   quantityPending: number;
   remarks?: string;
   date?: string; // ISO date; defaults to today
+}
+
+/** Toggle a single production stage's completion (checkbox tracker). */
+export interface SetStageCompletionDto {
+  stage: ProductionStage;
+  completed: boolean;
+  remarks?: string; // optional note recorded when completing
 }
 
 export interface DashboardSummary {

@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import type { OrderStatus, Priority, ProductionStage } from '@erp/types';
-import { PRODUCTION_STAGE_ORDER } from '@erp/types';
+import { PRODUCTION_STAGE_ORDER, PRODUCTION_STAGES } from '@erp/types';
 
 /** Format a number as Indian Rupees. `decimals` controls fraction digits (default 2). */
 export function inr(value: number, decimals = 2): string {
@@ -29,12 +29,19 @@ export function stageLabel(stage: ProductionStage): string {
     .join(' ');
 }
 
-/** Completion % from the order's current stage (DELIVERED = 100%). 9 stages. */
+/** Completion % from the order's current stage (DELIVERED = 100%). 10 stages. */
 export function stageProgress(stage: ProductionStage): number {
   const idx = PRODUCTION_STAGE_ORDER.indexOf(stage);
-  const last = PRODUCTION_STAGE_ORDER.length - 1; // 8
+  const last = PRODUCTION_STAGE_ORDER.length - 1; // 9
   if (idx < 0) return 0;
   return Math.round((idx / last) * 100);
+}
+
+/** Completion % from independently-checked stages (DELIVERED counts as 100%). */
+export function progressPct(completedStages: ProductionStage[]): number {
+  const total = PRODUCTION_STAGES.length; // 9 production stages
+  const done = completedStages.filter((s) => s !== 'DELIVERED').length;
+  return Math.round((Math.min(done, total) / total) * 100);
 }
 
 export function ProgressBar({ value }: { value: number }) {

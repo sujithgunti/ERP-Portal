@@ -103,9 +103,11 @@ User ────────────────┐
 Client                date           │
   id                  stage: Stage   │
   name                qtyCompleted   │
-  contact             qtyPending     │
-  │                   remarks        │
-  │ (1..*)            updatedById    │
+  gstNumber           qtyPending     │
+  phone               remarks        │
+  address             updatedById    │
+  │                                  │
+  │ (1..*)                           │
   ▼                                  │
 Order ◀──────────────────────────────┘ (1..*)
   id
@@ -114,7 +116,7 @@ Order ◀───────────────────────�
   name                 currentStage: Stage
   quantity             createdAt / updatedAt
   deadline
-  specifications (size, gsm, printing, handle, lamination)
+  specifications (size, gsm, paperType, printing, handle, lamination)
 ```
 
 ### Enums

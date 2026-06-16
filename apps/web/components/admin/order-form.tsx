@@ -5,6 +5,7 @@ import { Field, ErrorNote, SubmitButton } from '@/components/auth-fields';
 import { DatePicker } from '@/components/ui/date-picker';
 import { DropdownOptionSelector } from '@/components/ui/select';
 import { prismaApi, ApiError } from '@/lib/api';
+import { PAPER_TYPES } from '@erp/types';
 import type { ClientRow, OrderDetail } from '@/lib/types';
 
 export function OrderForm({
@@ -25,6 +26,7 @@ export function OrderForm({
   const [deadline, setDeadline] = useState(order?.deadline ? order.deadline.slice(0, 10) : '');
   const [clientId, setClientId] = useState(order?.client.id ?? '');
   const [priority, setPriority] = useState(order?.priority ?? 'MEDIUM');
+  const [paperType, setPaperType] = useState(order?.paperType ?? '');
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -49,6 +51,7 @@ export function OrderForm({
       priority,
       size: emptyToUndefined(form.get('size')),
       gsm: gsmRaw ? Number(gsmRaw) : undefined,
+      paperType: emptyToUndefined(form.get('paperType')),
       printingType: emptyToUndefined(form.get('printingType')),
       handleType: emptyToUndefined(form.get('handleType')),
       lamination: form.get('lamination') === 'on',
@@ -126,6 +129,19 @@ export function OrderForm({
         <div className="grid grid-cols-2 gap-4">
           <Field id="size" label="Size" placeholder="12 x 16" required={false} defaultValue={order?.size ?? undefined} />
           <Field id="gsm" label="GSM" type="number" placeholder="90" required={false} defaultValue={order?.gsm ?? undefined} />
+        </div>
+        <div className="space-y-1.5">
+          <label htmlFor="paperType" className="block text-sm font-semibold text-ink">
+            Paper type <span className="font-normal text-ink-faint">(optional)</span>
+          </label>
+          <DropdownOptionSelector
+            id="paperType"
+            name="paperType"
+            value={paperType}
+            onChange={setPaperType}
+            placeholder="Select paper type…"
+            options={PAPER_TYPES.map((p) => ({ value: p, label: p }))}
+          />
         </div>
         <div className="grid grid-cols-2 gap-4">
           <Field id="printingType" label="Printing type" placeholder="Flexo" required={false} defaultValue={order?.printingType ?? undefined} />

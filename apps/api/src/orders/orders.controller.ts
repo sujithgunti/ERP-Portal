@@ -19,6 +19,7 @@ import { OrdersService } from './orders.service';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { UpdateOrderDto } from './dto/update-order.dto';
 import { CreateDailyUpdateDto } from './dto/create-daily-update.dto';
+import { SetStageCompletionDto } from './dto/set-stage-completion.dto';
 
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Controller('orders')
@@ -63,6 +64,16 @@ export class OrdersController {
     @CurrentUser() user: AuthUser,
   ) {
     return this.ordersService.addDailyUpdate(id, dto, user.id);
+  }
+
+  @Roles(Role.ADMIN)
+  @Patch(':id/stages')
+  setStageCompletion(
+    @Param('id') id: string,
+    @Body() dto: SetStageCompletionDto,
+    @CurrentUser() user: AuthUser,
+  ) {
+    return this.ordersService.setStageCompletion(id, dto, user.id);
   }
 
   @Roles(Role.ADMIN)
