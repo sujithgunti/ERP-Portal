@@ -3,8 +3,8 @@
 @tailwind utilities;
 
 :root {
-  --paper: #f6f2e9;
-  --pine: #0e2a20;
+  --paper: #faf9f5;
+  --pine: #181715;
 }
 
 html {
@@ -16,8 +16,14 @@ html {
 
 body {
   background: var(--paper);
-  color: #16241d;
+  color: #141413;
   font-family: var(--font-sans), system-ui, sans-serif;
+}
+
+.font-display {
+  font-family: var(--font-display), Georgia, serif;
+  font-weight: 400;
+  letter-spacing: -0.02em;
 }
 
 /* Fine paper-grain overlay — gives surfaces a tactile, kraft-like texture. */
@@ -34,12 +40,12 @@ body {
 /* Atmospheric gradient mesh behind the brand panel.
    Solid dark base via background-color (never transparent), gradients layered on top. */
 .mesh {
-  background-color: #0a1f17;
+  background-color: #12110f;
   background-image:
-    radial-gradient(60% 50% at 20% 15%, rgba(63, 125, 94, 0.6) 0%, transparent 60%),
-    radial-gradient(50% 45% at 85% 30%, rgba(200, 162, 106, 0.24) 0%, transparent 55%),
-    radial-gradient(70% 60% at 70% 95%, rgba(10, 31, 23, 0.95) 0%, transparent 70%),
-    linear-gradient(160deg, #11332b 0%, #0a1f17 100%);
+    radial-gradient(60% 50% at 20% 15%, rgba(204, 120, 92, 0.15) 0%, transparent 60%),
+    radial-gradient(50% 45% at 85% 30%, rgba(230, 223, 216, 0.1) 0%, transparent 55%),
+    radial-gradient(70% 60% at 70% 95%, rgba(18, 17, 15, 0.95) 0%, transparent 70%),
+    linear-gradient(160deg, #181715 0%, #12110f 100%);
 }
 
 /* Hairline blueprint grid — nods to a factory production schematic.
@@ -61,8 +67,8 @@ body {
     outline-none transition-all duration-200 placeholder:text-ink-faint/70;
 }
 .field:focus {
-  @apply border-pine-moss;
-  box-shadow: 0 0 0 4px rgba(63, 125, 94, 0.13);
+  @apply border-kraft;
+  box-shadow: 0 0 0 4px rgba(204, 120, 92, 0.15);
 }
 
 ::selection {

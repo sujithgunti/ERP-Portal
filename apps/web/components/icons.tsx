@@ -1,27 +1,18 @@
-export function Logo({ dark = false }: { dark?: boolean }) {
-  const stroke = dark ? '#0e2a20' : '#f6f2e9';
-  const accent = dark ? '#a07f4c' : '#c8a26a';
+export function Logo({ className = '' }: { className?: string; dark?: boolean }) {
   return (
-    <svg width="34" height="34" viewBox="0 0 34 34" fill="none" aria-hidden>
-      <rect x="1" y="1" width="32" height="32" rx="9" stroke={stroke} strokeWidth="1.5" opacity="0.55" />
-      <path
-        d="M17 8c5 0 9 3.6 9 9 0 5-4 9-9 9-1.6 0-3-.4-4.3-1.1"
-        stroke={accent}
-        strokeWidth="2"
-        strokeLinecap="round"
-      />
-      <path d="M17 8c-5 0-9 3.6-9 9 0 2.4.9 4.5 2.4 6" stroke={stroke} strokeWidth="2" strokeLinecap="round" />
-      <path d="M17 26V8" stroke={stroke} strokeWidth="1.5" strokeLinecap="round" opacity="0.7" />
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" className={className} aria-hidden>
+      <path d="M12 3v18M3 12h18" />
+      <path d="M5.64 5.64l12.72 12.72M5.64 18.36L18.36 5.64" strokeWidth="1.8" opacity="0.65" />
     </svg>
   );
 }
 
 export function Wordmark({ dark = false }: { dark?: boolean }) {
   return (
-    <div className="flex items-center gap-3">
-      <Logo dark={dark} />
+    <div className="flex items-center gap-2.5">
+      <Logo className={dark ? 'text-pine' : 'text-kraft'} />
       <span
-        className={`font-display text-lg font-medium tracking-tight ${dark ? 'text-pine' : 'text-paper'}`}
+        className={`font-display text-lg font-normal tracking-tight ${dark ? 'text-pine' : 'text-paper'}`}
       >
         Verdant<span className={dark ? 'text-kraft-dark' : 'text-kraft'}>ERP</span>
       </span>

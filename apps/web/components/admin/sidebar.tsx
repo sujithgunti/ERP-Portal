@@ -38,7 +38,7 @@ export function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
             href={href}
             onClick={onNavigate}
             className={`group relative flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
-              active ? 'bg-paper/10 text-paper' : 'text-paper/60 hover:bg-paper/5 hover:text-paper/90'
+              active ? 'bg-paper/10 text-paper' : 'text-paper/60 hover:bg-paper/5 hover:text-paper'
             }`}
           >
             {active ? (
@@ -65,7 +65,7 @@ export function Sidebar() {
       </div>
 
       <div className="mt-auto px-2 text-xs leading-relaxed text-paper/30">
-        <p className="font-display italic text-paper/40">Production Control</p>
+        <p className="font-display italic text-paper/40 tracking-wide">Production Control</p>
         <p className="mt-1">Eco-bag manufacturing ERP</p>
       </div>
     </aside>

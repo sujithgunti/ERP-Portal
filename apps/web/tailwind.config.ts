@@ -6,27 +6,27 @@ const config: Config = {
     extend: {
       colors: {
         pine: {
-          DEFAULT: '#0e2a20',
-          deep: '#0a1f17',
-          800: '#11332680',
-          700: '#15392b',
-          600: '#1d4d39',
-          moss: '#3f7d5e',
+          DEFAULT: '#181715',
+          deep: '#12110f',
+          800: '#181715e0',
+          700: '#1a1a18',
+          600: '#252320',
+          moss: '#5db8a6',
         },
         kraft: {
-          DEFAULT: '#c8a26a',
-          light: '#dcc193',
-          dark: '#a07f4c',
+          DEFAULT: '#cc785c',
+          light: '#e6dfd8',
+          dark: '#a9583e',
         },
         paper: {
-          DEFAULT: '#f6f2e9',
-          deep: '#efe9da',
-          card: '#fffdf8',
+          DEFAULT: '#faf9f5',
+          deep: '#efe9de',
+          card: '#ffffff',
         },
         ink: {
-          DEFAULT: '#16241d',
-          soft: '#46544c',
-          faint: '#8a958d',
+          DEFAULT: '#141413',
+          soft: '#3d3d3a',
+          faint: '#6c6a64',
         },
       },
       fontFamily: {

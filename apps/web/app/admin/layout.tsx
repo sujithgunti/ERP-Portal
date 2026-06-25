@@ -38,7 +38,7 @@ function AdminShell({ children }: { children: React.ReactNode }) {
         <header className="sticky top-0 z-20 flex items-center justify-between gap-3 border-b border-ink-faint/15 bg-paper/85 px-4 py-3.5 backdrop-blur sm:px-6">
           <div className="flex items-center gap-3">
             <MobileNav />
-            <span className="hidden text-sm text-ink-faint sm:inline">Admin Console</span>
+            <span className="hidden text-sm text-ink-soft/75 sm:inline">Admin Console</span>
           </div>
           <div className="flex items-center gap-3 sm:gap-4">
             <div className="hidden text-right sm:block">

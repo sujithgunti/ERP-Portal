@@ -48,7 +48,7 @@ export function ProgressBar({ value }: { value: number }) {
   return (
     <div className="h-2 w-full overflow-hidden rounded-full bg-paper-deep">
       <div
-        className="h-full rounded-full bg-pine-moss transition-all"
+        className="h-full rounded-full bg-kraft transition-all"
         style={{ width: `${value}%` }}
       />
     </div>
@@ -66,16 +66,16 @@ export function StatCard({
 }) {
   return (
     <div
-      className={`rounded-2xl border bg-paper-card p-5 shadow-card ${
-        accent ? 'border-kraft/40' : 'border-ink-faint/15'
+      className={`rounded-2xl border bg-paper-card p-5 ${
+        accent ? 'border-kraft/60 shadow-sm' : 'border-ink-faint/60'
       }`}
     >
-      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-ink-faint">
+      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-ink-soft/75">
         {label}
       </p>
       <p
         className={`mt-2 font-display text-4xl font-normal tracking-tight ${
-          accent ? 'text-kraft-dark' : 'text-pine'
+          accent ? 'text-kraft' : 'text-pine'
         }`}
       >
         {value}
@@ -85,7 +85,7 @@ export function StatCard({
 }
 
 const STATUS_STYLES: Record<OrderStatus, string> = {
-  ACTIVE: 'bg-blue-50 text-blue-700 ring-blue-600/20',
+  ACTIVE: 'bg-kraft/10 text-kraft-dark ring-kraft/20',
   DELAYED: 'bg-red-50 text-red-700 ring-red-600/20',
   DELIVERED: 'bg-emerald-50 text-emerald-700 ring-emerald-600/20',
 };
@@ -160,7 +160,7 @@ export function EmptyState({ title, hint }: { title: string; hint?: string }) {
 
 export function Card({ children, className = '' }: { children: React.ReactNode; className?: string }) {
   return (
-    <div className={`rounded-2xl border border-ink-faint/15 bg-paper-card shadow-card ${className}`}>
+    <div className={`rounded-2xl border border-ink-faint/60 bg-paper-card ${className}`}>
       {children}
     </div>
   );

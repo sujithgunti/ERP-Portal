@@ -27,7 +27,7 @@ export default function AdminDashboard() {
   return (
     <>
       <div className="mb-8">
-        <p className="text-xs font-semibold uppercase tracking-[0.22em] text-kraft-dark">Production Control</p>
+        <p className="text-xs font-semibold uppercase tracking-[0.22em] text-ink-soft">Production Control</p>
         <h1 className="mt-1 font-display text-3xl font-normal tracking-tight text-pine">Today&apos;s overview</h1>
       </div>
 
@@ -57,7 +57,7 @@ export default function AdminDashboard() {
                       <li key={o.id}>
                         <Link href={`/admin/orders/${o.id}`} className="flex items-center justify-between rounded-md px-2 py-1 text-sm hover:bg-paper-deep/40">
                           <span className="truncate text-ink">{o.name}</span>
-                          <span className="ml-2 shrink-0 text-xs text-ink-faint">{o.orderCode}</span>
+                          <span className="ml-2 shrink-0 text-xs text-ink-soft/75">{o.orderCode}</span>
                         </Link>
                       </li>
                     ))}
@@ -69,16 +69,16 @@ export default function AdminDashboard() {
         </Card>
 
         <Card className="overflow-hidden lg:col-span-3">
-          <div className="flex items-center justify-between border-b border-ink-faint/12 px-6 py-4">
+          <div className="flex items-center justify-between border-b border-ink-faint/60 px-6 py-4">
             <h2 className="font-display text-lg text-pine">Orders</h2>
-            <span className="text-xs font-semibold text-ink-faint">{orders.length} total</span>
+            <span className="text-xs font-semibold text-ink-soft/75">{orders.length} total</span>
           </div>
           {orders.length === 0 ? (
             <p className="px-6 py-10 text-center text-sm text-ink-faint">No orders yet.</p>
           ) : (
             <div className="max-h-[28rem] overflow-auto">
             <table className="w-full min-w-[36rem] text-left text-sm">
-              <thead className="sticky top-0 z-10 bg-paper-card text-xs uppercase tracking-wide text-ink-faint">
+              <thead className="sticky top-0 z-10 bg-paper-deep text-xs uppercase tracking-wide text-ink-soft/75">
                 <tr>
                   <th className="px-6 py-2.5 font-semibold">Order</th>
                   <th className="px-3 py-2.5 font-semibold">Stage</th>
@@ -94,7 +94,7 @@ export default function AdminDashboard() {
                       <td className="px-6 py-3">
                         <Link href={`/admin/orders/${o.id}`} className="group">
                           <p className="font-medium text-ink group-hover:text-pine-moss">{o.name}</p>
-                          <p className="text-xs text-ink-faint">{o.orderCode} · {o.client.name}</p>
+                          <p className="text-xs text-ink-soft/75">{o.orderCode} · {o.client.name}</p>
                         </Link>
                       </td>
                       <td className="px-3 py-3 text-ink-soft">{stageLabel(o.currentStage)}</td>
