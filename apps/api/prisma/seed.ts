@@ -46,7 +46,9 @@ async function main() {
     create: {
       id: '00000000-0000-0000-0000-000000000001',
       name: 'Taaza',
-      contact: 'taaza@example.com',
+      gstNumber: '29ABCDE1234F1Z5',
+      phone: '+91 90000 00000',
+      address: 'Plot 12, Industrial Area, Hyderabad',
     },
   });
 
@@ -62,6 +64,7 @@ async function main() {
       currentStage: ProductionStage.PRINTING,
       size: '12x16',
       gsm: 90,
+      paperType: 'Brown',
       printingType: 'Flexo',
       handleType: 'Loop',
       lamination: true,

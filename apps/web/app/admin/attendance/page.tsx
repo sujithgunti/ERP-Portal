@@ -107,8 +107,8 @@ export default function AttendancePage() {
       ) : roster.length === 0 ? (
         <EmptyState title="No active workers" hint="Add workers via “Manage workers” to mark attendance." />
       ) : (
-        <div className="overflow-hidden rounded-2xl border border-ink-faint/15 bg-paper-card shadow-card">
-          <table className="w-full text-left text-sm">
+        <div className="overflow-x-auto rounded-2xl border border-ink-faint/15 bg-paper-card shadow-card">
+          <table className="w-full min-w-[44rem] text-left text-sm">
             <thead className="bg-paper-deep/40 text-xs uppercase tracking-wide text-ink-faint">
               <tr>
                 <th className="px-6 py-3 font-semibold">Worker</th>

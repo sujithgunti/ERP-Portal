@@ -53,7 +53,8 @@ export default function OrdersPage() {
         <EmptyState title="No orders here" hint="Create your first order to start tracking production." />
       ) : (
         <Card className="overflow-hidden">
-          <table className="w-full text-left text-sm">
+          <div className="overflow-x-auto">
+          <table className="w-full min-w-[44rem] text-left text-sm">
             <thead className="bg-paper-deep/40 text-xs uppercase tracking-wide text-ink-faint">
               <tr>
                 <th className="px-6 py-3 font-semibold">Order</th>
@@ -86,6 +87,7 @@ export default function OrdersPage() {
               ))}
             </tbody>
           </table>
+          </div>
         </Card>
       )}
     </>

@@ -2,13 +2,14 @@ import {
   IsBoolean,
   IsDateString,
   IsEnum,
+  IsIn,
   IsInt,
   IsOptional,
   IsString,
   Min,
   MinLength,
 } from 'class-validator';
-import { Priority } from '@erp/types';
+import { Priority, PAPER_TYPES } from '@erp/types';
 
 export class CreateOrderDto {
   @IsString()
@@ -40,6 +41,10 @@ export class CreateOrderDto {
   @IsOptional()
   @IsInt()
   gsm?: number;
+
+  @IsOptional()
+  @IsIn(PAPER_TYPES as unknown as string[])
+  paperType?: string;
 
   @IsOptional()
   @IsString()

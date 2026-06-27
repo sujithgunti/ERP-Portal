@@ -28,9 +28,15 @@ function ClientForm({
     const name = String(form.get('name') ?? '').trim();
     const gstNumber = String(form.get('gstNumber') ?? '').trim();
     const phone = String(form.get('phone') ?? '').trim();
+    const address = String(form.get('address') ?? '').trim();
     if (!name) return setError('Client name is required.');
 
-    const payload = { name, gstNumber: gstNumber || undefined, phone: phone || undefined };
+    const payload = {
+      name,
+      gstNumber: gstNumber || undefined,
+      phone: phone || undefined,
+      address: address || undefined,
+    };
     setPending(true);
     try {
       if (mode === 'edit' && client) await prismaApi('PATCH', `/clients/${client.id}`, payload);
@@ -47,6 +53,7 @@ function ClientForm({
       <Field id="name" label="Client name" placeholder="Taaza" defaultValue={client?.name} />
       <Field id="gstNumber" label="GST number (optional)" placeholder="29ABCDE1234F1Z5" required={false} defaultValue={client?.gstNumber ?? undefined} />
       <Field id="phone" label="Phone (optional)" placeholder="+91 98765 43210" required={false} defaultValue={client?.phone ?? undefined} />
+      <Field id="address" label="Address (optional)" placeholder="Plot 12, Industrial Area, Hyderabad" required={false} defaultValue={client?.address ?? undefined} />
       <ErrorNote message={error} />
       <div className="flex items-center gap-3">
         <div className="w-44">
@@ -108,6 +115,60 @@ export function EditClientButton({ client, onSaved }: { client: ClientRow; onSav
             onSaved();
           }}
         />
+      </Modal>
+    </>
+  );
+}
+
+export function DeleteClientButton({ client, onSaved }: { client: ClientRow; onSaved: () => void }) {
+  const toast = useToast();
+  const [open, setOpen] = useState(false);
+  const [busy, setBusy] = useState(false);
+
+  async function remove() {
+    setBusy(true);
+    try {
+      await prismaApi('DELETE', `/clients/${client.id}`);
+      setOpen(false);
+      toast('Client deleted', 'success');
+      onSaved();
+    } catch (err) {
+      const msg =
+        err instanceof ApiError && err.status === 400
+          ? 'This client has orders and cannot be deleted.'
+          : err instanceof ApiError && err.status === 403
+            ? 'Not permitted.'
+            : 'Failed to delete client.';
+      toast(msg, 'error');
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <>
+      <button
+        type="button"
+        onClick={() => setOpen(true)}
+        className="rounded-md border border-red-200 px-3 py-1.5 text-sm font-medium text-red-700 transition-colors hover:bg-red-50"
+      >
+        Delete
+      </button>
+      <Modal
+        open={open}
+        onClose={() => setOpen(false)}
+        size="sm"
+        title="Delete client?"
+        subtitle={`${client.name} will be permanently removed. Clients with orders cannot be deleted.`}
+      >
+        <div className="flex justify-end gap-3">
+          <button type="button" onClick={() => setOpen(false)} className="rounded-lg border border-ink-faint/30 px-4 py-2.5 text-sm font-medium text-ink-soft hover:bg-paper-deep">
+            Cancel
+          </button>
+          <button type="button" onClick={remove} disabled={busy} className="rounded-lg bg-red-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-red-700 disabled:opacity-60">
+            Delete client
+          </button>
+        </div>
       </Modal>
     </>
   );

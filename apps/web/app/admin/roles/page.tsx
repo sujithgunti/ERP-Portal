@@ -76,8 +76,8 @@ export default function RolesPage() {
       ) : users.length === 0 ? (
         <EmptyState title="No users yet" hint="Add a user, share the generated password, and they can log in." />
       ) : (
-        <Card className="overflow-hidden">
-          <table className="w-full text-left text-sm">
+        <Card className="overflow-x-auto">
+          <table className="w-full min-w-[40rem] text-left text-sm">
             <thead className="bg-paper-deep/40 text-xs uppercase tracking-wide text-ink-faint">
               <tr>
                 <th className="px-6 py-3 font-semibold">Name</th>

@@ -10,6 +10,7 @@ import type {
 import { SectionHeader, StatusBadge, PriorityTag, inr, stageLabel } from '@/components/admin/ui';
 import { DataTable, type Column } from '@/components/ui/data-table';
 import { DateRangePicker } from '@/components/ui/date-range-picker';
+import { DeadlineCalendar } from '@/components/admin/deadline-calendar';
 import { useReportsStore, type ReportKind } from '@/lib/store/reports-store';
 
 /** Plain-text money for the PDF (avoids ₹ glyph issues in the PDF font). */
@@ -216,6 +217,7 @@ function DirectionBadge({ d }: { d: string }) {
 }
 
 function OrdersReport({ report, loading }: { report?: ReportResult<OrderReportRow>; loading: boolean }) {
+  const [view, setView] = useState<'table' | 'calendar'>('table');
   const cols: Column<OrderReportRow>[] = [
     { key: 'orderCode', header: 'Order', render: (r) => <span className="font-medium text-ink">{r.orderCode}</span> },
     { key: 'name', header: 'Name', className: 'text-ink-soft' },
@@ -224,20 +226,51 @@ function OrdersReport({ report, loading }: { report?: ReportResult<OrderReportRo
     { key: 'priority', header: 'Priority', render: (r) => <PriorityTag priority={r.priority} /> },
     { key: 'status', header: 'Status', render: (r) => <StatusBadge status={r.status} /> },
     { key: 'currentStage', header: 'Stage', className: 'text-ink-soft', render: (r) => stageLabel(r.currentStage) },
+    { key: 'paperType', header: 'Paper', className: 'text-ink-soft', render: (r) => r.paperType ?? '—' },
     { key: 'deadline', header: 'Deadline', className: 'text-ink-soft', render: (r) => fmtDate(r.deadline) },
     { key: 'costPerBag', header: 'Cost/bag', align: 'right', className: 'tabular-nums text-ink', render: (r) => inr(r.costPerBag, 2) },
     { key: 'totalCost', header: 'Total cost', align: 'right', className: 'tabular-nums text-ink', render: (r) => inr(r.totalCost) },
     { key: 'totalMargin', header: 'Margin', align: 'right', className: 'tabular-nums', render: (r) => (r.totalMargin == null ? '—' : <span className={r.totalMargin >= 0 ? 'text-emerald-700' : 'text-red-700'}>{inr(r.totalMargin)}</span>) },
   ];
   return (
-    <DataTable
-      columns={cols}
-      rows={report?.rows ?? []}
-      getRowKey={(r) => r.orderCode}
-      loading={loading}
-      emptyTitle="No orders in range"
-      emptyHint="Adjust the date range above."
-    />
+    <div className="space-y-4">
+      <div className="inline-flex rounded-lg border border-ink-faint/20 bg-paper-card p-1 print:hidden">
+        {(['table', 'calendar'] as const).map((v) => (
+          <button
+            key={v}
+            type="button"
+            onClick={() => setView(v)}
+            className={`rounded-md px-3 py-1.5 text-sm font-semibold capitalize transition-colors ${
+              view === v ? 'bg-pine text-paper' : 'text-ink-soft hover:bg-paper-deep'
+            }`}
+          >
+            {v}
+          </button>
+        ))}
+      </div>
+
+      {view === 'calendar' ? (
+        <DeadlineCalendar
+          items={(report?.rows ?? []).map((r) => ({
+            name: r.name,
+            orderCode: r.orderCode,
+            deadline: r.deadline,
+            status: r.status,
+          }))}
+          title="Deadline calendar"
+          subtitle="Orders plotted on their deadline. Navigate months to review upcoming load."
+        />
+      ) : (
+        <DataTable
+          columns={cols}
+          rows={report?.rows ?? []}
+          getRowKey={(r) => r.orderCode}
+          loading={loading}
+          emptyTitle="No orders in range"
+          emptyHint="Adjust the date range above."
+        />
+      )}
+    </div>
   );
 }
 

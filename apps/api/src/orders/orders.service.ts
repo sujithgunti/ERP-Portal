@@ -4,11 +4,12 @@ import { PrismaService } from '../database/prisma.service';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { UpdateOrderDto } from './dto/update-order.dto';
 import { CreateDailyUpdateDto } from './dto/create-daily-update.dto';
+import { SetStageCompletionDto } from './dto/set-stage-completion.dto';
 
 const STAGE_ORDER: ProductionStage[] = [
   ProductionStage.PAPER_PROCUREMENT,
-  ProductionStage.PRINTING,
   ProductionStage.DESIGNING,
+  ProductionStage.PRINTING,
   ProductionStage.LAMINATION,
   ProductionStage.PUNCHING,
   ProductionStage.IN_HOUSE_MANUFACTURING,
@@ -56,6 +57,7 @@ export class OrdersService {
         clientId: dto.clientId,
         size: dto.size,
         gsm: dto.gsm,
+        paperType: dto.paperType,
         printingType: dto.printingType,
         handleType: dto.handleType,
         lamination: dto.lamination ?? false,
@@ -73,6 +75,7 @@ export class OrdersService {
       status: dto.status,
       size: dto.size,
       gsm: dto.gsm,
+      paperType: dto.paperType,
       printingType: dto.printingType,
       handleType: dto.handleType,
       lamination: dto.lamination,
@@ -119,6 +122,60 @@ export class OrdersService {
       });
 
       return update;
+    });
+  }
+
+  /**
+   * Toggle a single production stage's completion (checkbox tracker). Stages are
+   * independent — completing stage 5 does not require stages 1-4. Derives the
+   * order's currentStage (first incomplete stage) and status, auto-delivering
+   * once every production stage is checked.
+   */
+  async setStageCompletion(orderId: string, dto: SetStageCompletionDto, userId: string) {
+    const order = await this.findOne(orderId);
+    const production = STAGE_ORDER.filter((s) => s !== ProductionStage.DELIVERED);
+
+    const set = new Set(order.completedStages);
+    if (dto.completed) set.add(dto.stage);
+    else set.delete(dto.stage);
+
+    // Keep only valid production stages, in canonical order.
+    const completed = production.filter((s) => set.has(s));
+    const allDone = completed.length === production.length;
+    const nextStage = production.find((s) => !set.has(s)) ?? ProductionStage.DELIVERED;
+    const isDelayed = !allDone && new Date() > order.deadline;
+
+    return this.prisma.$transaction(async (tx) => {
+      // Record a history entry when a stage is checked off (optional note).
+      if (dto.completed) {
+        await tx.dailyUpdate.create({
+          data: {
+            orderId,
+            stage: dto.stage,
+            remarks: dto.remarks,
+            date: new Date(),
+            updatedById: userId,
+          },
+        });
+      }
+
+      return tx.order.update({
+        where: { id: orderId },
+        data: {
+          completedStages: { set: completed },
+          currentStage: allDone ? ProductionStage.DELIVERED : nextStage,
+          status: allDone
+            ? OrderStatus.DELIVERED
+            : isDelayed
+              ? OrderStatus.DELAYED
+              : OrderStatus.ACTIVE,
+          deliveredAt: allDone ? (order.deliveredAt ?? new Date()) : null,
+        },
+        include: {
+          client: true,
+          dailyUpdates: { orderBy: { date: 'desc' }, include: { updatedBy: true } },
+        },
+      });
     });
   }
 

@@ -1,6 +1,6 @@
 // ERP Portal — Prisma schema (MVP)
 // Source of truth: docs/01-product-spec.md (§4 stages, §5 entities, §6 permissions)
-// Domain: eco-bag factory — clients, orders, 9-stage production tracking, RBAC.
+// Domain: eco-bag factory — clients, orders, 10-stage production tracking, RBAC.
 
 generator client {
   provider = "prisma-client-js"
@@ -37,7 +37,10 @@ enum OrderStatus {
   DELIVERED
 }
 
-/// The nine ordered production stages (spec §4). `currentStage` points at one.
+/// The ten production stages (spec §4). `currentStage` points at one.
+/// NOTE: pipeline/display order is defined by PRODUCTION_STAGE_ORDER in
+/// @erp/types (Procurement → Designing → Printing → …); the DB enum
+/// declaration order below is not significant (no ORDER BY on this column).
 enum ProductionStage {
   PAPER_PROCUREMENT
   PRINTING
@@ -124,6 +127,7 @@ model Client {
   name      String
   gstNumber String?
   phone     String?
+  address   String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -141,9 +145,14 @@ model Order {
   status       OrderStatus     @default(ACTIVE)
   currentStage ProductionStage @default(PAPER_PROCUREMENT)
 
+  // Independently-completed production stages (checkbox tracker). Order of the
+  // array is not significant; completion is derived from membership.
+  completedStages ProductionStage[] @default([])
+
   // Specifications (spec §5) — structured columns for MVP.
   size         String?
   gsm          Int?
+  paperType    String? // Brown | Cyber XL | Viva Liner
   printingType String?
   handleType   String?
   lamination   Boolean         @default(false)
