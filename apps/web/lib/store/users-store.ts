@@ -16,6 +16,7 @@ interface UsersState {
   fetchUsers: (force?: boolean) => Promise<void>;
   createUser: (dto: CreateUserDto) => Promise<CredentialResult>;
   updateUser: (id: string, dto: UpdateUserDto) => Promise<void>;
+  updateTabs: (id: string, tabs: number) => Promise<void>;
   resetPassword: (id: string, password: string) => Promise<CredentialResult>;
   removeUser: (id: string) => Promise<void>;
 }
@@ -46,6 +47,11 @@ export const useUsersStore = create<UsersState>((set, get) => ({
 
   updateUser: async (id, dto) => {
     await prismaApi('PATCH', `/users/${id}`, dto);
+    await get().fetchUsers(true);
+  },
+
+  updateTabs: async (id, tabs) => {
+    await prismaApi('PATCH', `/users/${id}/tabs`, { tabs });
     await get().fetchUsers(true);
   },
 

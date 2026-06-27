@@ -11,11 +11,13 @@ import { WorkersModule } from './workers/workers.module';
 import { MachinesModule } from './machines/machines.module';
 import { UsersModule } from './users/users.module';
 import { ReportsModule } from './reports/reports.module';
+import { PermissionsModule } from './permissions/permissions.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
     PrismaModule,
+    PermissionsModule,
     AuthModule,
     ClientsModule,
     OrdersModule,

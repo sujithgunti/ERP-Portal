@@ -1,5 +1,6 @@
-import { Workspace } from '@/components/workspace';
+import { redirect } from 'next/navigation';
 
+// Partners use the shared shell (filtered tabs). Legacy route → shell.
 export default function PartnerPage() {
-  return <Workspace area="Partner Dashboard" role="PARTNER" />;
+  redirect('/admin');
 }

@@ -7,6 +7,7 @@ import { useApi } from '@/lib/use-api';
 import type { OrderRow, ClientRow } from '@/lib/types';
 import { Card, SectionHeader, StatusBadge, PriorityTag, EmptyState, stageLabel } from '@/components/admin/ui';
 import { NewOrderButton } from '@/components/admin/new-order-button';
+import { AdminOnly } from '@/components/auth/admin-only';
 
 const FILTERS: { label: string; value?: OrderStatus }[] = [
   { label: 'All' },
@@ -26,7 +27,7 @@ export default function OrdersPage() {
       <SectionHeader
         eyebrow="Order Management"
         title="Orders"
-        actionSlot={<NewOrderButton clients={clients ?? []} onCreated={refetch} />}
+        actionSlot={<AdminOnly><NewOrderButton clients={clients ?? []} onCreated={refetch} /></AdminOnly>}
       />
 
       <div className="mb-5 flex gap-2">

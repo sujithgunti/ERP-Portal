@@ -7,6 +7,7 @@ import { useToast } from '@/lib/store/ui-store';
 import { SectionHeader, EmptyState, StatCard, inr } from '@/components/admin/ui';
 import { DatePicker } from '@/components/ui/date-picker';
 import { DropdownOptionSelector } from '@/components/ui/select';
+import { AdminOnly } from '@/components/auth/admin-only';
 
 function isoToday(): string {
   const d = new Date();
@@ -43,7 +44,7 @@ export default function ExpensesPage() {
 
   return (
     <>
-      <SectionHeader eyebrow="Daily Cash Book" title="Expenses" actionSlot={<AddEntryButton />} />
+      <SectionHeader eyebrow="Daily Cash Book" title="Expenses" actionSlot={<AdminOnly><AddEntryButton /></AdminOnly>} />
 
       <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
         <StatCard label="Total incoming" value={inr(totals.incoming)} />
@@ -101,20 +102,22 @@ function DayCard({ day }: { day: import('@/lib/types').DailyExpenseDay }) {
               <td className="px-3 py-3 text-ink-soft">{e.note ?? ''}</td>
               <td className="px-3 py-3 text-right tabular-nums text-ink">{inr(e.amount)}</td>
               <td className="px-6 py-3 text-right">
-                <button
-                  type="button"
-                  onClick={async () => {
-                    try {
-                      await removeEntry(e.id);
-                      toast('Entry removed', 'success');
-                    } catch {
-                      toast('Failed to remove', 'error');
-                    }
-                  }}
-                  className="text-xs font-medium text-red-700 hover:text-red-800"
-                >
-                  Remove
-                </button>
+                <AdminOnly>
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      try {
+                        await removeEntry(e.id);
+                        toast('Entry removed', 'success');
+                      } catch {
+                        toast('Failed to remove', 'error');
+                      }
+                    }}
+                    className="text-xs font-medium text-red-700 hover:text-red-800"
+                  >
+                    Remove
+                  </button>
+                </AdminOnly>
               </td>
             </tr>
           ))}

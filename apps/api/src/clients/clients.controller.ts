@@ -1,13 +1,16 @@
 import { Body, Controller, Get, Param, Patch, Post, UseGuards } from '@nestjs/common';
-import { Role } from '@erp/types';
+import { Role, TAB } from '@erp/types';
 import { JwtAuthGuard } from '../auth/jwt/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
+import { TabGuard } from '../auth/guards/tab.guard';
+import { RequireTab } from '../auth/decorators/require-tab.decorator';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { ClientsService } from './clients.service';
 import { CreateClientDto } from './dto/create-client.dto';
 import { UpdateClientDto } from './dto/update-client.dto';
 
-@UseGuards(JwtAuthGuard, RolesGuard)
+@UseGuards(JwtAuthGuard, RolesGuard, TabGuard)
+@RequireTab(TAB.CLIENTS)
 @Controller('clients')
 export class ClientsController {
   constructor(private readonly clientsService: ClientsService) {}

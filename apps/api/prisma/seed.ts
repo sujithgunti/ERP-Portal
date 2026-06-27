@@ -1,41 +1,44 @@
-import { PrismaClient, Role, Priority, ProductionStage } from '@prisma/client';
+import { PrismaClient, UserRole, Priority, ProductionStage } from '@prisma/client';
+import { ROLE_DEFAULT_TABS } from '@erp/types';
 import * as bcrypt from 'bcryptjs';
 
 const prisma = new PrismaClient();
 
 async function main() {
-  const admin = await prisma.user.upsert({
-    where: { email: 'admin@erp.local' },
-    update: {},
-    create: {
-      name: 'Admin',
-      email: 'admin@erp.local',
-      passwordHash: await bcrypt.hash('admin123', 10),
-      role: Role.ADMIN,
-    },
-  });
+  // Dynamic role definitions (code + default permission bitmask).
+  const ROLE_DEFS: { role: UserRole; definition: string; permissions: number }[] = [
+    { role: 'ADMIN', definition: 'Full administrative access to all tabs and settings.', permissions: ROLE_DEFAULT_TABS.ADMIN },
+    { role: 'SUPERVISOR', definition: 'Production oversight: dashboard, orders, work efficiency.', permissions: ROLE_DEFAULT_TABS.SUPERVISOR },
+    { role: 'PARTNER', definition: 'Owner view: dashboard and reports.', permissions: ROLE_DEFAULT_TABS.PARTNER },
+  ];
+  const roleDefs: Record<string, string> = {}; // code -> id
+  for (const d of ROLE_DEFS) {
+    const rd = await prisma.roleDefinition.upsert({
+      where: { code: d.role },
+      update: {}, // don't clobber admin-tuned role defaults on re-seed
+      create: { role: d.role, code: d.role, definition: d.definition, permissions: d.permissions },
+    });
+    roleDefs[d.role] = rd.id;
+  }
 
-  await prisma.user.upsert({
-    where: { email: 'supervisor@erp.local' },
-    update: {},
-    create: {
-      name: 'Supervisor',
-      email: 'supervisor@erp.local',
-      passwordHash: await bcrypt.hash('supervisor123', 10),
-      role: Role.SUPERVISOR,
-    },
-  });
+  // Each user starts with their role's default tab mask; admin customises per user.
+  const mkUser = async (name: string, email: string, password: string, role: UserRole) =>
+    prisma.user.upsert({
+      where: { email },
+      update: {},
+      create: {
+        name,
+        email,
+        passwordHash: await bcrypt.hash(password, 10),
+        roleAssignment: {
+          create: { roleDefinitionId: roleDefs[role], permissions: ROLE_DEFAULT_TABS[role] },
+        },
+      },
+    });
 
-  await prisma.user.upsert({
-    where: { email: 'partner@erp.local' },
-    update: {},
-    create: {
-      name: 'Partner',
-      email: 'partner@erp.local',
-      passwordHash: await bcrypt.hash('partner123', 10),
-      role: Role.PARTNER,
-    },
-  });
+  const admin = await mkUser('Admin', 'admin@erp.local', 'admin123', 'ADMIN');
+  await mkUser('Supervisor', 'supervisor@erp.local', 'supervisor123', 'SUPERVISOR');
+  await mkUser('Partner', 'partner@erp.local', 'partner123', 'PARTNER');
 
   const client = await prisma.client.upsert({
     where: { id: '00000000-0000-0000-0000-000000000001' },

@@ -15,8 +15,9 @@ datasource db {
 // Enums
 // ─────────────────────────────────────────────────────────────
 
-/// RBAC roles (spec §2).
-enum Role {
+/// Known RBAC role codes. New roles can be added here and seeded into
+/// role_definitions; RoleDefinition.role links a row to its enum code.
+enum UserRole {
   ADMIN
   SUPERVISOR
   PARTNER
@@ -67,20 +68,54 @@ enum AttendanceStatus {
 // Models
 // ─────────────────────────────────────────────────────────────
 
-/// System user. Auth + RBAC. Admin enters data; Supervisor verifies; Partner monitors.
+/// System user. Auth + RBAC. Each user has exactly one role (via UserRoleAssignment).
 model User {
-  id           String        @id @default(uuid()) @db.Uuid
-  name         String
-  email        String        @unique
-  passwordHash String
-  role         Role          @default(PARTNER)
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
+  id             String              @id @default(uuid()) @db.Uuid
+  name           String
+  email          String              @unique
+  passwordHash   String
+  createdAt      DateTime            @default(now())
+  updatedAt      DateTime            @updatedAt
 
+  // Exactly one role assignment per user (carries the per-user permission bitmask).
+  roleAssignment UserRoleAssignment?
   // Daily updates this user recorded (Admin) — see DailyUpdate.updatedBy.
-  dailyUpdates DailyUpdate[]
+  dailyUpdates   DailyUpdate[]
+}
 
-  @@index([role])
+/// Dynamic RBAC role. Roles live in a table so new ones can be added without a
+/// schema change. `permissions` is the role's DEFAULT tab bitmask (Discord-style;
+/// one bit per tab, see TAB in @erp/types) used to seed a new user's assignment.
+model RoleDefinition {
+  id          String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  role        UserRole? @unique
+  code        String    @unique @db.VarChar(50)
+  definition  String    @db.VarChar(500)
+  permissions BigInt    @default(0) @db.BigInt
+
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  userAssignments UserRoleAssignment[]
+
+  @@map("role_definitions")
+}
+
+/// Maps a user to their role + that user's effective tab permission bitmask.
+/// One row per user (single role per user).
+model UserRoleAssignment {
+  id               String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId           String         @unique @map("user_id") @db.Uuid
+  user             User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  roleDefinitionId String         @map("role_definition_id") @db.Uuid
+  roleDefinition   RoleDefinition @relation(fields: [roleDefinitionId], references: [id])
+  permissions      BigInt         @default(0) @db.BigInt
+
+  createdAt        DateTime       @default(now()) @map("created_at")
+  updatedAt        DateTime       @updatedAt @map("updated_at")
+
+  @@index([roleDefinitionId])
+  @@map("user_role_assignments")
 }
 
 /// A client the factory produces orders for.

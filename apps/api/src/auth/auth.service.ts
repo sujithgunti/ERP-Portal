@@ -1,8 +1,8 @@
 import { ConflictException, Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { Role, User } from '@prisma/client';
 import * as bcrypt from 'bcryptjs';
-import type { AuthUser } from '@erp/types';
+import type { AuthUser, Role as RoleCode } from '@erp/types';
+import { Role } from '@erp/types';
 import { PrismaService } from '../database/prisma.service';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
@@ -26,16 +26,21 @@ export class AuthService {
       throw new ConflictException('Email already registered');
     }
 
+    const partner = await this.prisma.roleDefinition.findUniqueOrThrow({
+      where: { code: Role.PARTNER },
+    });
     const user = await this.prisma.user.create({
       data: {
         name: dto.name,
         email: dto.email,
         passwordHash: await bcrypt.hash(dto.password, 10),
-        role: Role.PARTNER,
+        roleAssignment: {
+          create: { roleDefinitionId: partner.id, permissions: partner.permissions },
+        },
       },
     });
 
-    return this.issue(user);
+    return this.issue(user.id);
   }
 
   async login(dto: LoginDto): Promise<AuthResult> {
@@ -49,23 +54,29 @@ export class AuthService {
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    return this.issue(user);
+    return this.issue(user.id);
   }
 
-  /** Sign a JWT and return it alongside the public user shape. */
-  private async issue(user: User): Promise<AuthResult> {
+  /** Sign a JWT carrying the user's role code (from their assignment). */
+  private async issue(userId: string): Promise<AuthResult> {
+    const user = await this.prisma.user.findUniqueOrThrow({
+      where: { id: userId },
+      include: { roleAssignment: { include: { roleDefinition: true } } },
+    });
+    const role = (user.roleAssignment?.roleDefinition.code ?? Role.PARTNER) as RoleCode;
+
     const authUser: AuthUser = {
       id: user.id,
       name: user.name,
       email: user.email,
-      role: user.role,
+      role,
     };
 
     const accessToken = await this.jwt.signAsync({
       sub: user.id,
       email: user.email,
       name: user.name,
-      role: user.role,
+      role,
     });
 
     return { accessToken, user: authUser };

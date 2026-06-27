@@ -1,14 +1,17 @@
 import { Body, Controller, Delete, Get, Param, Patch, Post, Query, UseGuards } from '@nestjs/common';
-import { Role } from '@erp/types';
+import { Role, TAB } from '@erp/types';
 import { JwtAuthGuard } from '../auth/jwt/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
+import { TabGuard } from '../auth/guards/tab.guard';
+import { RequireTab } from '../auth/decorators/require-tab.decorator';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { WorkersService } from './workers.service';
 import { CreateWorkerDto } from './dto/create-worker.dto';
 import { UpdateWorkerDto } from './dto/update-worker.dto';
 import { MarkAttendanceDto } from './dto/mark-attendance.dto';
 
-@UseGuards(JwtAuthGuard, RolesGuard)
+@UseGuards(JwtAuthGuard, RolesGuard, TabGuard)
+@RequireTab(TAB.ATTENDANCE)
 @Controller()
 export class WorkersController {
   constructor(private readonly workersService: WorkersService) {}

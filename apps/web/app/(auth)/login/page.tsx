@@ -8,10 +8,11 @@ import { Field, PasswordField, ErrorNote, SubmitButton } from '@/components/auth
 import { prismaApi, ApiError } from '@/lib/api';
 import { useAuthStore } from '@/lib/store/auth-store';
 
+// All roles share the same shell; it resolves each user's first permitted tab.
 const HOME_BY_ROLE: Record<string, string> = {
   ADMIN: '/admin',
-  SUPERVISOR: '/supervisor',
-  PARTNER: '/partner',
+  SUPERVISOR: '/admin',
+  PARTNER: '/admin',
 };
 
 export default function LoginPage() {
