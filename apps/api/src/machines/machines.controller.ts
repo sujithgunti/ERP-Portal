@@ -1,14 +1,17 @@
 import { Body, Controller, Delete, Get, Param, Patch, Post, Query, UseGuards } from '@nestjs/common';
-import { Role } from '@erp/types';
+import { Role, TAB } from '@erp/types';
 import { JwtAuthGuard } from '../auth/jwt/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
+import { TabGuard } from '../auth/guards/tab.guard';
+import { RequireTab } from '../auth/decorators/require-tab.decorator';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { MachinesService } from './machines.service';
 import { CreateMachineDto } from './dto/create-machine.dto';
 import { UpdateMachineDto } from './dto/update-machine.dto';
 import { SetMachineProductionDto } from './dto/set-machine-production.dto';
 
-@UseGuards(JwtAuthGuard, RolesGuard)
+@UseGuards(JwtAuthGuard, RolesGuard, TabGuard)
+@RequireTab(TAB.WORK_EFFICIENCY)
 @Controller()
 export class MachinesController {
   constructor(private readonly machinesService: MachinesService) {}

@@ -16,6 +16,9 @@ export default function AdminDashboard() {
     return <p className="py-20 text-center text-sm text-ink-faint">Loading dashboard…</p>;
   }
 
+  // Recent orders: exclude delayed; show active / in-progress (pending) only.
+  const recent = orders.filter((o) => o.status !== 'DELAYED').slice(0, 6);
+
   // Order-wise stages: group non-delivered orders under their current stage.
   const ordersByStage = PRODUCTION_STAGE_ORDER.filter((s) => s !== 'DELIVERED')
     .map((stage) => ({

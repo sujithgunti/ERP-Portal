@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Role } from '@erp/types';
+import { Role, TAB_META, hasTab } from '@erp/types';
 import type { Role as RoleType, UserRow, CredentialResult } from '@/lib/types';
 import { Card, SectionHeader, EmptyState } from '@/components/admin/ui';
 import { Modal } from '@/components/ui/modal';
@@ -31,6 +31,7 @@ export default function RolesPage() {
   const [addOpen, setAddOpen] = useState(false);
   const [cred, setCred] = useState<CredentialResult | null>(null);
   const [resetUser, setResetUser] = useState<UserRow | null>(null);
+  const [tabsUser, setTabsUser] = useState<UserRow | null>(null);
 
   useEffect(() => {
     fetchUsers();
@@ -121,7 +122,14 @@ export default function RolesPage() {
                       {new Date(u.createdAt).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' })}
                     </td>
                     <td className="px-6 py-3.5 text-right text-xs">
-                      <button type="button" onClick={() => setResetUser(u)} className="font-medium text-pine-moss hover:text-pine">
+                      {u.role === Role.ADMIN ? (
+                        <span className="font-medium text-ink-faint">Full access</span>
+                      ) : (
+                        <button type="button" onClick={() => setTabsUser(u)} className="font-medium text-pine-moss hover:text-pine">
+                          Tab access
+                        </button>
+                      )}
+                      <button type="button" onClick={() => setResetUser(u)} className="ml-3 font-medium text-pine-moss hover:text-pine">
                         Reset password
                       </button>
                       {!isSelf ? (
@@ -138,10 +146,78 @@ export default function RolesPage() {
         </Card>
       )}
 
+      <TabPermissionsModal user={tabsUser} onClose={() => setTabsUser(null)} />
+
       <AddUserModal open={addOpen} onClose={() => setAddOpen(false)} onCreated={(res) => { setAddOpen(false); setCred(res); }} />
       <ResetPasswordModal user={resetUser} onClose={() => setResetUser(null)} onDone={(res) => { setResetUser(null); setCred(res); }} />
       <CredentialModal cred={cred} onClose={() => setCred(null)} />
     </>
+  );
+}
+
+/**
+ * Per-user tab access editor (Discord-style bitfield). Toggle buttons per tab,
+ * seeded from the user's current mask; Save persists the new bitmask. Two users
+ * of the same role can have different tabs. Real enforcement is the backend TabGuard.
+ */
+function TabPermissionsModal({ user, onClose }: { user: UserRow | null; onClose: () => void }) {
+  const updateTabs = useUsersStore((s) => s.updateTabs);
+  const toast = useToast();
+  const [draft, setDraft] = useState(0);
+  const [saving, setSaving] = useState(false);
+
+  // Seed the draft from the user's current mask whenever the modal opens.
+  useEffect(() => {
+    setDraft(user?.tabs ?? 0);
+  }, [user?.id, user?.tabs]);
+
+  if (!user) return null;
+
+  const toggle = (bit: number) => setDraft((d) => d ^ bit); // XOR flips the one bit
+
+  async function save() {
+    setSaving(true);
+    try {
+      await updateTabs(user!.id, draft);
+      toast('Tab access updated', 'success');
+      onClose();
+    } catch {
+      toast('Failed to update tab access', 'error');
+      setSaving(false);
+    }
+  }
+
+  return (
+    <Modal open={user !== null} onClose={onClose} size="md" title="Tab access" subtitle={`Choose which tabs ${user.name} (${user.role}) can access.`}>
+      <div className="space-y-2">
+        {TAB_META.map((t) => {
+          const on = hasTab(draft, t.bit);
+          return (
+            <button
+              key={t.key}
+              type="button"
+              onClick={() => toggle(t.bit)}
+              className={`flex w-full items-center justify-between rounded-lg border px-4 py-3 text-left text-sm transition-colors ${
+                on ? 'border-pine bg-pine/5' : 'border-ink-faint/20 hover:bg-paper-deep'
+              }`}
+              aria-pressed={on}
+            >
+              <span className={`font-medium ${on ? 'text-pine' : 'text-ink-soft'}`}>{t.label}</span>
+              {/* Toggle switch */}
+              <span className={`relative h-5 w-9 shrink-0 rounded-full transition-colors ${on ? 'bg-pine' : 'bg-ink-faint/30'}`}>
+                <span className={`absolute top-0.5 h-4 w-4 rounded-full bg-paper transition-all ${on ? 'left-[1.125rem]' : 'left-0.5'}`} />
+              </span>
+            </button>
+          );
+        })}
+      </div>
+      <div className="mt-5 flex items-center gap-3">
+        <button type="button" onClick={save} disabled={saving} className="rounded-lg bg-pine px-5 py-2.5 text-sm font-semibold text-paper hover:bg-pine-deep disabled:opacity-60">
+          {saving ? 'Saving…' : 'Save permissions'}
+        </button>
+        <button type="button" onClick={onClose} className="text-sm font-medium text-ink-soft hover:text-ink">Cancel</button>
+      </div>
+    </Modal>
   );
 }
 

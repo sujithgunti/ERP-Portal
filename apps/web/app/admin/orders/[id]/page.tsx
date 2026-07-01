@@ -7,6 +7,7 @@ import type { OrderDetail } from '@/lib/types';
 import { Card, StatusBadge, PriorityTag, stageLabel } from '@/components/admin/ui';
 import { OrderActions } from '@/components/admin/order-actions';
 import { OrderCostCard } from '@/components/admin/order-cost-form';
+import { AdminOnly } from '@/components/auth/admin-only';
 import { StageChecklist } from '@/components/admin/stage-checklist';
 
 export default function OrderDetailPage() {
@@ -52,7 +53,7 @@ export default function OrderDetailPage() {
           <h1 className="mt-1 font-display text-3xl font-normal tracking-tight text-pine">{order.name}</h1>
           <p className="mt-1 text-sm text-ink-soft">{order.client.name}</p>
         </div>
-        <OrderActions order={order} onChanged={refetch} />
+        <AdminOnly><OrderActions order={order} onChanged={refetch} /></AdminOnly>
       </div>
 
       <Card className="mb-6 p-6">
@@ -64,7 +65,7 @@ export default function OrderDetailPage() {
         />
       </Card>
 
-      <OrderCostCard orderId={order.id} />
+      <AdminOnly><OrderCostCard orderId={order.id} /></AdminOnly>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         <Card className="p-6">

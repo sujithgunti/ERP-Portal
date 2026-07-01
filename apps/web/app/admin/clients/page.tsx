@@ -4,6 +4,7 @@ import { useApi } from '@/lib/use-api';
 import type { ClientRow } from '@/lib/types';
 import { Card, SectionHeader, EmptyState } from '@/components/admin/ui';
 import { NewClientButton, EditClientButton, DeleteClientButton } from '@/components/admin/client-buttons';
+import { AdminOnly } from '@/components/auth/admin-only';
 
 export default function ClientsPage() {
   const { data: clients, loading, refetch } = useApi<ClientRow[]>('GET', '/clients');
@@ -13,7 +14,7 @@ export default function ClientsPage() {
       <SectionHeader
         eyebrow="Client Management"
         title="Clients"
-        actionSlot={<NewClientButton onSaved={refetch} />}
+        actionSlot={<AdminOnly><NewClientButton onSaved={refetch} /></AdminOnly>}
       />
 
       {loading ? (
@@ -45,10 +46,12 @@ export default function ClientsPage() {
                     {new Date(c.createdAt).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' })}
                   </td>
                   <td className="px-6 py-3.5 text-right">
-                    <div className="flex justify-end gap-2">
-                      <EditClientButton client={c} onSaved={refetch} />
-                      <DeleteClientButton client={c} onSaved={refetch} />
-                    </div>
+                    <AdminOnly>
+                      <div className="flex justify-end gap-2">
+                        <EditClientButton client={c} onSaved={refetch} />
+                        <DeleteClientButton client={c} onSaved={refetch} />
+                      </div>
+                    </AdminOnly>
                   </td>
                 </tr>
               ))}

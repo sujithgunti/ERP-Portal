@@ -13,6 +13,52 @@ export const Role = {
 } as const;
 export type Role = (typeof Role)[keyof typeof Role];
 
+// ---- Tab permissions (Discord-style bitfield: one bit per tab) ----
+// A role's allowed tabs are a single integer mask. Grant `mask | bit`, toggle
+// `mask ^ bit`, check `(mask & bit) === bit`. ADMIN is an override (all tabs).
+// ponytail: Int mask (7 tabs), switch to BigInt + string column if tabs exceed ~31.
+export const TAB = {
+  DASHBOARD: 1 << 0,
+  ORDERS: 1 << 1,
+  CLIENTS: 1 << 2,
+  EXPENSES: 1 << 3,
+  ATTENDANCE: 1 << 4,
+  WORK_EFFICIENCY: 1 << 5,
+  REPORTS: 1 << 6,
+} as const;
+export type TabBit = (typeof TAB)[keyof typeof TAB];
+
+/** Tab metadata for the sidebar + admin toggle UI (icons mapped by key in web). */
+export const TAB_META = [
+  { key: 'DASHBOARD', label: 'Dashboard', route: '/admin', bit: TAB.DASHBOARD },
+  { key: 'ORDERS', label: 'Orders', route: '/admin/orders', bit: TAB.ORDERS },
+  { key: 'CLIENTS', label: 'Clients', route: '/admin/clients', bit: TAB.CLIENTS },
+  { key: 'EXPENSES', label: 'Expenses', route: '/admin/expenses', bit: TAB.EXPENSES },
+  { key: 'ATTENDANCE', label: 'Attendance', route: '/admin/attendance', bit: TAB.ATTENDANCE },
+  { key: 'WORK_EFFICIENCY', label: 'Work Efficiency', route: '/admin/work-efficiency', bit: TAB.WORK_EFFICIENCY },
+  { key: 'REPORTS', label: 'Reports', route: '/admin/reports', bit: TAB.REPORTS },
+] as const;
+
+/** Every tab bit OR-ed together — the ADMIN (all-access) mask. */
+export const ALL_TABS = TAB_META.reduce((m, t) => m | t.bit, 0);
+
+/** True iff `mask` has `bit` set. */
+export const hasTab = (mask: number, bit: number) => (mask & bit) === bit;
+
+/**
+ * Default tab mask applied to a NEW user of each role (admin can then customise
+ * it per user). ADMIN is always all-access (override in code).
+ */
+export const ROLE_DEFAULT_TABS: Record<Role, number> = {
+  ADMIN: ALL_TABS,
+  SUPERVISOR: TAB.DASHBOARD | TAB.ORDERS | TAB.WORK_EFFICIENCY,
+  PARTNER: TAB.DASHBOARD | TAB.REPORTS,
+};
+
+/** Effective tab mask for a user: ADMIN sees everything, others use their own stored mask. */
+export const tabsForUser = (role: Role, userMask: number) =>
+  role === Role.ADMIN ? ALL_TABS : userMask;
+
 export const Priority = {
   HIGH: 'HIGH',
   MEDIUM: 'MEDIUM',
@@ -86,6 +132,7 @@ export interface UserRow {
   name: string;
   email: string;
   role: Role;
+  tabs: number; // per-user tab permission mask (effective access = ADMIN ? all : tabs)
   createdAt: string;
 }
 

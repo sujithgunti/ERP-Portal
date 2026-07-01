@@ -9,15 +9,18 @@ import {
   Query,
   UseGuards,
 } from '@nestjs/common';
-import { Role } from '@erp/types';
+import { Role, TAB } from '@erp/types';
 import { JwtAuthGuard } from '../auth/jwt/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
+import { TabGuard } from '../auth/guards/tab.guard';
+import { RequireTab } from '../auth/decorators/require-tab.decorator';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { ExpensesService } from './expenses.service';
 import { CreateDailyExpenseDto } from './dto/create-daily-expense.dto';
 import { UpdateDailyExpenseDto } from './dto/update-daily-expense.dto';
 
-@UseGuards(JwtAuthGuard, RolesGuard)
+@UseGuards(JwtAuthGuard, RolesGuard, TabGuard)
+@RequireTab(TAB.EXPENSES)
 @Controller('expenses')
 export class ExpensesController {
   constructor(private readonly expensesService: ExpensesService) {}

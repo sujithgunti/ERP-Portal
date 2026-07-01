@@ -1,5 +1,6 @@
-import { Workspace } from '@/components/workspace';
+import { redirect } from 'next/navigation';
 
+// Supervisors use the shared shell (filtered tabs). Legacy route → shell.
 export default function SupervisorPage() {
-  return <Workspace area="Supervisor Monitor" role="SUPERVISOR" />;
+  redirect('/admin');
 }

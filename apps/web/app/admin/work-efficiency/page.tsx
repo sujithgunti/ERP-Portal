@@ -7,6 +7,7 @@ import { useToast } from '@/lib/store/ui-store';
 import { useMachinesStore } from '@/lib/store/machines-store';
 import { ManageMachinesModal } from '@/components/admin/manage-machines';
 import { DatePicker } from '@/components/ui/date-picker';
+import { AdminOnly, useIsAdmin } from '@/components/auth/admin-only';
 
 function todayStr(): string {
   const d = new Date();
@@ -43,13 +44,15 @@ export default function WorkEfficiencyPage() {
         eyebrow="Production"
         title="Work Efficiency"
         actionSlot={
-          <button
-            type="button"
-            onClick={() => setManageOpen(true)}
-            className="shrink-0 rounded-lg bg-pine px-4 py-2.5 text-sm font-semibold text-paper transition-colors hover:bg-pine-deep"
-          >
-            + Add machines
-          </button>
+          <AdminOnly>
+            <button
+              type="button"
+              onClick={() => setManageOpen(true)}
+              className="shrink-0 rounded-lg bg-pine px-4 py-2.5 text-sm font-semibold text-paper transition-colors hover:bg-pine-deep"
+            >
+              + Add machines
+            </button>
+          </AdminOnly>
         }
       />
 
@@ -136,24 +139,28 @@ function MachineRowEntry({ row }: { row: MachineProductionRosterRow }) {
       </td>
       <td className="px-3 py-3.5 text-ink-soft">{row.type ?? '—'}</td>
       <td className="px-6 py-3.5">
-        <div className="flex items-center justify-end gap-2">
-          <input
-            type="number"
-            min={0}
-            value={value}
-            onChange={(e) => setValue(e.target.value)}
-            placeholder="0"
-            className="field w-32 text-right"
-          />
-          <button
-            type="button"
-            onClick={save}
-            disabled={saving || !dirty}
-            className="rounded-lg bg-pine px-3 py-2 text-sm font-semibold text-paper transition-colors hover:bg-pine-deep disabled:opacity-50"
-          >
-            {saving ? '…' : 'Save'}
-          </button>
-        </div>
+        {useIsAdmin() ? (
+          <div className="flex items-center justify-end gap-2">
+            <input
+              type="number"
+              min={0}
+              value={value}
+              onChange={(e) => setValue(e.target.value)}
+              placeholder="0"
+              className="field w-32 text-right"
+            />
+            <button
+              type="button"
+              onClick={save}
+              disabled={saving || !dirty}
+              className="rounded-lg bg-pine px-3 py-2 text-sm font-semibold text-paper transition-colors hover:bg-pine-deep disabled:opacity-50"
+            >
+              {saving ? '…' : 'Save'}
+            </button>
+          </div>
+        ) : (
+          <p className="text-right tabular-nums text-ink">{row.bagsProduced?.toLocaleString('en-IN') ?? '—'}</p>
+        )}
       </td>
     </tr>
   );

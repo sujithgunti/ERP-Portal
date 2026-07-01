@@ -10,6 +10,7 @@ import { useWorkersStore } from '@/lib/store/workers-store';
 import { ManageWorkersModal } from '@/components/admin/manage-workers';
 import { DatePicker } from '@/components/ui/date-picker';
 import { ClockIcon } from '@/components/icons';
+import { AdminOnly, useIsAdmin } from '@/components/auth/admin-only';
 
 function todayStr(): string {
   const d = new Date();
@@ -75,13 +76,15 @@ export default function AttendancePage() {
         eyebrow="Workforce"
         title="Daily Attendance"
         actionSlot={
-          <button
-            type="button"
-            onClick={() => setManageOpen(true)}
-            className="shrink-0 rounded-lg border border-ink-faint/30 px-4 py-2.5 text-sm font-semibold text-ink-soft transition-colors hover:bg-paper-deep"
-          >
-            Manage workers
-          </button>
+          <AdminOnly>
+            <button
+              type="button"
+              onClick={() => setManageOpen(true)}
+              className="shrink-0 rounded-lg border border-ink-faint/30 px-4 py-2.5 text-sm font-semibold text-ink-soft transition-colors hover:bg-paper-deep"
+            >
+              Manage workers
+            </button>
+          </AdminOnly>
         }
       />
 
@@ -136,6 +139,7 @@ export default function AttendancePage() {
 
 function RosterRow({ row }: { row: AttendanceRosterRow }) {
   const toast = useToast();
+  const isAdmin = useIsAdmin();
   const mark = useAttendanceStore((s) => s.mark);
   const saving = useAttendanceStore((s) => !!s.saving[row.workerId]);
 
@@ -205,16 +209,18 @@ function RosterRow({ row }: { row: AttendanceRosterRow }) {
             type="time"
             value={from}
             onChange={(e) => onTime('from', e.target.value)}
+            disabled={!isAdmin}
             aria-label="Check in"
-            className="w-[5.5rem] bg-transparent text-sm tabular-nums text-ink outline-none"
+            className="w-[5.5rem] bg-transparent text-sm tabular-nums text-ink outline-none disabled:opacity-60"
           />
           <span className="text-ink-faint">–</span>
           <input
             type="time"
             value={to}
             onChange={(e) => onTime('to', e.target.value)}
+            disabled={!isAdmin}
             aria-label="Check out"
-            className="w-[5.5rem] bg-transparent text-sm tabular-nums text-ink outline-none"
+            className="w-[5.5rem] bg-transparent text-sm tabular-nums text-ink outline-none disabled:opacity-60"
           />
           {hours ? (
             <span className="ml-1 rounded-full bg-pine/10 px-2 py-0.5 text-xs font-semibold text-pine">{hours}h</span>
@@ -228,6 +234,13 @@ function RosterRow({ row }: { row: AttendanceRosterRow }) {
       </td>
 
       <td className="px-6 py-3.5">
+        {!isAdmin ? (
+          <div className="flex justify-end">
+            <span className="rounded-full bg-paper-deep px-3 py-1 text-xs font-semibold text-ink-soft">
+              {row.status ?? 'Not marked'}
+            </span>
+          </div>
+        ) : (
         <div className="flex justify-end">
           <div className="inline-flex overflow-hidden rounded-lg border border-ink-faint/20">
             {OPTIONS.map((opt, i) => {
@@ -253,6 +266,7 @@ function RosterRow({ row }: { row: AttendanceRosterRow }) {
             })}
           </div>
         </div>
+        )}
       </td>
     </tr>
   );

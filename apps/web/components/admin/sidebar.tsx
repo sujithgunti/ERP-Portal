@@ -1,7 +1,9 @@
 'use client';
 
+import type { ComponentType } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { TAB_META, hasTab } from '@erp/types';
 import {
   Wordmark,
   GridIcon,
@@ -13,24 +15,41 @@ import {
   ShieldIcon,
   ReportIcon,
 } from '@/components/icons';
+import { useAuthStore } from '@/lib/store/auth-store';
+import { usePermissionsStore } from '@/lib/store/permissions-store';
 
-export const NAV = [
-  { href: '/admin', label: 'Dashboard', icon: GridIcon, exact: true },
-  { href: '/admin/orders', label: 'Orders', icon: BoxIcon },
-  { href: '/admin/clients', label: 'Clients', icon: UsersIcon },
-  { href: '/admin/expenses', label: 'Expenses', icon: RupeeIcon },
-  { href: '/admin/attendance', label: 'Attendance', icon: CheckIcon },
-  { href: '/admin/work-efficiency', label: 'Work Efficiency', icon: GaugeIcon },
-  { href: '/admin/reports', label: 'Reports', icon: ReportIcon },
-  { href: '/admin/roles', label: 'Manage Roles', icon: ShieldIcon },
-];
+const ICONS: Record<string, ComponentType> = {
+  DASHBOARD: GridIcon,
+  ORDERS: BoxIcon,
+  CLIENTS: UsersIcon,
+  EXPENSES: RupeeIcon,
+  ATTENDANCE: CheckIcon,
+  WORK_EFFICIENCY: GaugeIcon,
+  REPORTS: ReportIcon,
+};
+
+type NavItem = { href: string; label: string; icon: ComponentType; exact: boolean };
 
 /** Shared nav links — used by the desktop sidebar and the mobile drawer. */
 export function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
   const pathname = usePathname();
+  const myTabs = usePermissionsStore((s) => s.myTabs) ?? 0;
+  const role = useAuthStore((s) => s.user?.role);
+
+  // Tabs the user may see (filtered by their bitmask), plus Manage Roles for admins.
+  const nav: NavItem[] = TAB_META.filter((t) => hasTab(myTabs, t.bit)).map((t) => ({
+    href: t.route,
+    label: t.label,
+    icon: ICONS[t.key],
+    exact: t.route === '/admin',
+  }));
+  if (role === 'ADMIN') {
+    nav.push({ href: '/admin/roles', label: 'Manage Roles', icon: ShieldIcon, exact: false });
+  }
+
   return (
     <nav className="flex flex-col gap-1">
-      {NAV.map(({ href, label, icon: Icon, exact }) => {
+      {nav.map(({ href, label, icon: Icon, exact }) => {
         const active = exact ? pathname === href : pathname.startsWith(href);
         return (
           <Link

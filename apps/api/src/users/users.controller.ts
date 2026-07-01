@@ -9,6 +9,7 @@ import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
+import { UpdateTabsDto } from './dto/update-tabs.dto';
 
 // Admin-only: managing login users / roles.
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -35,6 +36,12 @@ export class UsersController {
   @Post(':id/reset-password')
   resetPassword(@Param('id') id: string, @Body() dto: ResetPasswordDto) {
     return this.usersService.resetPassword(id, dto.password);
+  }
+
+  // Per-user tab permissions.
+  @Patch(':id/tabs')
+  updateTabs(@Param('id') id: string, @Body() dto: UpdateTabsDto) {
+    return this.usersService.updateTabs(id, dto.tabs);
   }
 
   @Delete(':id')

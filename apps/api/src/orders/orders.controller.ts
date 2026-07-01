@@ -9,10 +9,12 @@ import {
   Query,
   UseGuards,
 } from '@nestjs/common';
-import { Role, OrderStatus } from '@erp/types';
+import { Role, OrderStatus, TAB } from '@erp/types';
 import type { AuthUser } from '@erp/types';
 import { JwtAuthGuard } from '../auth/jwt/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
+import { TabGuard } from '../auth/guards/tab.guard';
+import { RequireTab } from '../auth/decorators/require-tab.decorator';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { OrdersService } from './orders.service';
@@ -21,7 +23,8 @@ import { UpdateOrderDto } from './dto/update-order.dto';
 import { CreateDailyUpdateDto } from './dto/create-daily-update.dto';
 import { SetStageCompletionDto } from './dto/set-stage-completion.dto';
 
-@UseGuards(JwtAuthGuard, RolesGuard)
+@UseGuards(JwtAuthGuard, RolesGuard, TabGuard)
+@RequireTab(TAB.ORDERS)
 @Controller('orders')
 export class OrdersController {
   constructor(private readonly ordersService: OrdersService) {}
